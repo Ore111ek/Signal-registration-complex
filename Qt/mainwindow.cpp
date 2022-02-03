@@ -28,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ConnectForm = new ConnectionForm;
+    connect(ui->btn_conForm, SIGNAL (clicked()), this, SLOT (on_btn_conForm_clicked()));
+
     for(int j = 0; j < NUM_OF_COLORS; j++){
         graph.ch[j].x.clear();
         graph.ch[j].y.clear();
@@ -38,6 +41,55 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     initialize_graph();
+
+    //test
+/*
+    // создаем кнопки
+    for(int i = NUM_OF_CHANNELS+MAX_MEASUREMENTS-1; i >= 0; i--){
+        if(i < NUM_OF_CHANNELS) button[i] = new QPushButton(QString::number(i+1), this);
+        else button[i] = new QPushButton("Изм. " + QString::number(i+1 - NUM_OF_CHANNELS), this);
+        ui->Layout_bottom->insertWidget(0,button[i]);
+        button[i]->hide();
+    }
+    */
+
+    for(int i = NUM_OF_CHANNELS-1; i >= 0; i--){
+        chmini[i] = new ChMiniForm(i+1);
+        ui->Layout_bottom->insertWidget(0,chmini[i]);
+        chmini[i]->setProperty("objectName","ChMini" + QString::number(i+1));
+        chmini[i]->hide();
+    }
+    chmini[1]->setStyleSheet("ChMiniForm{border: 1px solid #060606;}");//???Не работает((((
+    chmini[3]->setStyleSheet("ChMiniForm{background-color: #dfdfdf;}");// ??? ((((
+    /*
+    chmini[1] = new ChMiniForm(2);
+    ui->Layout_bottom->insertWidget(0,chmini[1]);
+    chmini[0] = new ChMiniForm(1);
+    ui->Layout_bottom->insertWidget(0,chmini[0]);
+    chmini[0]->show();
+  */
+    chbutton[0] = ui->btn_ch1;
+    chbutton[1] = ui->btn_ch2;
+    chbutton[2] = ui->btn_ch3;
+    chbutton[3] = ui->btn_ch4;
+    chbutton[4] = ui->btn_ch5;
+    chbutton[5] = ui->btn_ch6;
+    chbutton[6] = ui->btn_ch7;
+    chbutton[7] = ui->btn_ch8;
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        connect(chbutton[i], SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+        connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (on_mini_ch_close_clicked()));
+    }
+
+/*    connect(ui->btn_ch1, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch2, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch3, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch4, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch5, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch6, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch7, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
+    connect(ui->btn_ch8, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked())); */
+
 }
 
 void MainWindow::initialize_graph(){
@@ -92,5 +144,33 @@ void MainWindow::initialize_graph(){
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_btn_conForm_clicked()
+{
+    ConnectForm->show();
+}
+
+void MainWindow::on_btn_ch_clicked()
+{
+    int n = sender()->property("objectName").toString()[6].unicode()-49;
+    chmini[n]->show();
+    sender()->setProperty("visible",false);
+    ui->widget->graph(n)->setVisible(true);
+    ui->widget->replot();
+}
+
+void MainWindow::on_mini_ch_close_clicked()
+{
+    sender()->setProperty("visible",false);
+    int n = sender()->property("objectName").toString()[6].unicode()-49;
+    chbutton[n]->show();
+    ui->widget->graph(n)->setVisible(false);
+    ui->widget->replot();
+}
+
+void MainWindow::on_btn_addMath_clicked()
+{
+
 }
 
