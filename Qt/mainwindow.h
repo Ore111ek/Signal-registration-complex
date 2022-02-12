@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QVector>
+#include <QFileDialog>
+#include <QKeyEvent>
+#include <QUdpSocket>
 #include "connectionform.h"
 #include "chminiform.h"
 
@@ -43,12 +46,43 @@ private:
     QPushButton *button[12];
     QWidget *chmini[8];
     QPushButton *chbutton[12];
+    QUdpSocket *socket;
+
+    QHostAddress *destIP;
 
     void initialize_graph();
+    void graph_setDark();
+    void graph_setLight();
+
+protected:
+    void keyPressEvent(QKeyEvent * e) override; //А НУЖНЫ ЛИ
+    void keyReleaseEvent(QKeyEvent * e) override; // НАЖАТИЯ КНОПОК КЛАВИАТУРЫ?? ПРИДУМАТЬ ГОРЯЧИЕ КЛАВИШИ
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+
 private slots:
     void on_btn_conForm_clicked();
     void on_btn_addMath_clicked();
     void on_mini_ch_close_clicked();
     void on_btn_ch_clicked();
+    void on_btn_graph_theme_clicked();
+    void on_btn_save_graph_pdf_clicked();
+    void on_btn_save_graph_png_clicked();
+    void on_btn_save_graph_jpg_clicked();
+    void on_btn_save_graph_bmp_clicked();
+    void on_btn_graph_zone_clicked();
+    void on_btn_graph_zoominX_clicked();
+    void on_btn_graph_zoomoutX_clicked();
+    void on_btn_graph_zoominY_clicked();
+    void on_btn_graph_zoomoutY_clicked();
+    void on_btn_graph_zoomin_clicked();
+    void on_btn_graph_zoomout_clicked();
+    void readyReadUDP();
+    void on_btn_start_reg_clicked();
+public slots:
+    void ping_device(QString ip_str);
+
+signals:
+    void ping_response(bool state);
 };
 #endif // MAINWINDOW_H
