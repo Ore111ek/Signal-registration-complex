@@ -26,7 +26,13 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>120</height>
+        <height>40</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>130</height>
        </size>
       </property>
       <property name="tabShape">
@@ -40,7 +46,7 @@
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>Настройка</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
@@ -160,7 +166,7 @@
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>Работа</string>
        </attribute>
        <widget class="QRadioButton" name="radioButton">
         <property name="geometry">
@@ -1058,6 +1064,11 @@
       <widget class="QWidget" name="tab_6">
        <attribute name="title">
         <string>Измерение</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_7">
+       <attribute name="title">
+        <string>Скрыть меню</string>
        </attribute>
       </widget>
      </widget>

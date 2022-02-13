@@ -25,7 +25,7 @@ private:
 
 signals:
     void close_clicked();
-    void edit_clicked();
+    void edit_clicked(QPoint coord);
 };
 
 #endif // CHMINIFORM_H

@@ -62,6 +62,11 @@ MainWindow::MainWindow(QWidget *parent)
         ui->Layout_bottom->insertWidget(0,chmini[i]);
         chmini[i]->setProperty("objectName","ChMini" + QString::number(i+1));
         chmini[i]->hide();
+
+        // Новые строки
+        chan[i] = new ChanForm();
+        chan[i]->hide();
+        chan[i]->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     }
     chmini[1]->setStyleSheet("ChMiniForm{border: 1px solid #060606;}");//???Не работает((((
     chmini[3]->setStyleSheet("ChMiniForm{background-color: #dfdfdf;}");// ??? ((((
@@ -83,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
     for(int i = 0; i < NUM_OF_CHANNELS; i++){
         connect(chbutton[i], SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
         connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (on_mini_ch_close_clicked()));
+        connect(chmini[i], SIGNAL (edit_clicked(QPoint)), chan[i], SLOT (show_settings(QPoint)));
     }
 
 /*    connect(ui->btn_ch1, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
@@ -431,5 +437,15 @@ void MainWindow::ping_device(QString ip_str)
     *destIP = QHostAddress(ip_str);
     socket->connectToHost(*destIP,65001,QIODevice::ReadWrite);
     emit ping_response(ip_str=="192.168.0.104");
+}
+
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    if(ui->tabWidget->tabText(index)=="Скрыть меню"){
+        ui->tabWidget->setMaximumHeight(40);
+    }else{
+        ui->tabWidget->setMaximumHeight(130);
+    }
 }
 

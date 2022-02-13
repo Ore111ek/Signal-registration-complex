@@ -9,6 +9,7 @@
 #include <QUdpSocket>
 #include "connectionform.h"
 #include "chminiform.h"
+#include "chanform.h"
 
 #define NUM_OF_COLORS 13
 #define NUM_OF_CHANNELS 8
@@ -45,6 +46,7 @@ private:
     ConnectionForm *ConnectForm;
     QPushButton *button[12];
     QWidget *chmini[8];
+    QWidget *chan[8];
     QPushButton *chbutton[12];
     QUdpSocket *socket;
 
@@ -79,6 +81,8 @@ private slots:
     void on_btn_graph_zoomout_clicked();
     void readyReadUDP();
     void on_btn_start_reg_clicked();
+    void on_tabWidget_currentChanged(int index);
+
 public slots:
     void ping_device(QString ip_str);
 

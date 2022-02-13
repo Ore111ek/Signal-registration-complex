@@ -22,6 +22,9 @@ void ChMiniForm::on_closeButton_clicked()
 
 void ChMiniForm::on_editButton_clicked()
 {
-    emit edit_clicked();
+    QPoint coord;
+    coord.setX(this->mapToGlobal(QPoint(0,0)).x() + this->width()/2);
+    coord.setY(this->mapToGlobal(QPoint(0,0)).y());
+    emit edit_clicked(coord);
 }
 

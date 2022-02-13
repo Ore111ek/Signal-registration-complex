@@ -9,6 +9,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    chanform.cpp \
     chminiform.cpp \
     connectionform.cpp \
     main.cpp \
@@ -16,12 +17,14 @@ SOURCES += \
     qcustomplot.cpp
 
 HEADERS += \
+    chanform.h \
     chminiform.h \
     connectionform.h \
     mainwindow.h \
     qcustomplot.h
 
 FORMS += \
+    chanform.ui \
     chminiform.ui \
     connectionform.ui \
     mainwindow.ui
