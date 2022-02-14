@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     initialize_graph();
 
+    connect(ui->customPlot, SIGNAL (mousePress(QMouseEvent *)), this, SLOT (on_mousePress_subwidget(QMouseEvent *)));
     //test
 /*
     // создаем кнопки
@@ -86,6 +87,9 @@ MainWindow::MainWindow(QWidget *parent)
     chbutton[6] = ui->btn_ch7;
     chbutton[7] = ui->btn_ch8;
     for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        connect(chbutton[i], SIGNAL (clicked()), this, SLOT (hide_subwidgets()));
+        connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (hide_subwidgets()));
+        connect(chmini[i], SIGNAL (edit_clicked(QPoint)), this, SLOT (hide_subwidgets()));
         connect(chbutton[i], SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
         connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (on_mini_ch_close_clicked()));
         connect(chmini[i], SIGNAL (edit_clicked(QPoint)), chan[i], SLOT (show_settings(QPoint)));
@@ -211,6 +215,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
+    hide_subwidgets();
+    /*
     switch (event->button()) {
             case Qt::LeftButton:
             {
@@ -236,7 +242,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 qDebug() << "Other button pressed, id = "+QString::number(event->button());
                 break;
             }
-        }
+        } */
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
@@ -263,7 +269,22 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
                 qDebug() << "Other button released, id = "+QString::number(event->button());
                 break;
             }
+    }
+}
+
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    //QPoint delta;
+    //delta.setX(event->pos().x() - event->oldPos().x());
+    //delta.setY(event->pos().y() - event->oldPos().y());
+   /* for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        if(chan[i]->isVisible()){
+            chan[i]->move(chan[i]->x()+delta.x(),chan[i]->y()+delta.y());
+            chan[i]->hide();
+            chan[i]->show();
         }
+    }*/
+    hide_subwidgets();
 }
 
 void MainWindow::initialize_graph(){
@@ -439,6 +460,13 @@ void MainWindow::ping_device(QString ip_str)
     emit ping_response(ip_str=="192.168.0.104");
 }
 
+void MainWindow::hide_subwidgets()
+{
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        chan[i]->hide();
+    }
+}
+
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
@@ -447,5 +475,10 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     }else{
         ui->tabWidget->setMaximumHeight(130);
     }
+}
+
+void MainWindow::on_mousePress_subwidget(QMouseEvent *event)
+{
+    mousePressEvent(event);
 }
 

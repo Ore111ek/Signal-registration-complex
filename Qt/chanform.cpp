@@ -16,5 +16,6 @@ ChanForm::~ChanForm()
 void ChanForm::show_settings(QPoint bottom)
 {
     this->move(bottom.x() - this->width()/2,bottom.y() - this->height());
+    this->hide();
     this->show();
 }

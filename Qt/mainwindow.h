@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QFileDialog>
 #include <QKeyEvent>
+#include <QMoveEvent>
 #include <QUdpSocket>
 #include "connectionform.h"
 #include "chminiform.h"
@@ -61,6 +62,7 @@ protected:
     void keyReleaseEvent(QKeyEvent * e) override; // НАЖАТИЯ КНОПОК КЛАВИАТУРЫ?? ПРИДУМАТЬ ГОРЯЧИЕ КЛАВИШИ
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void moveEvent(QMoveEvent * event) override;
 
 private slots:
     void on_btn_conForm_clicked();
@@ -82,9 +84,11 @@ private slots:
     void readyReadUDP();
     void on_btn_start_reg_clicked();
     void on_tabWidget_currentChanged(int index);
+    void on_mousePress_subwidget(QMouseEvent *event);
 
 public slots:
     void ping_device(QString ip_str);
+    void hide_subwidgets();
 
 signals:
     void ping_response(bool state);
