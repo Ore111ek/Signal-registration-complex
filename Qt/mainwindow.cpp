@@ -200,7 +200,7 @@ void MainWindow::graph_setLight(){
 void MainWindow::keyPressEvent(QKeyEvent *e)
 {
     if(e->key() == Qt::Key_Alt){
-        qDebug() << "Alt button pressed";
+        //qDebug() << "Alt button pressed";
         ui->customPlot->setSelectionRectMode(QCP::srmZoom);
     }
 }
@@ -208,7 +208,7 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
 void MainWindow::keyReleaseEvent(QKeyEvent *e)
 {
     if(e->key() == Qt::Key_Alt){
-        qDebug() << "Alt button released";
+       // qDebug() << "Alt button released";
         ui->customPlot->setSelectionRectMode(QCP::srmNone);
     }
 }
@@ -247,7 +247,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-
+/*
     switch (event->button()) {
             case Qt::LeftButton:
             {
@@ -270,6 +270,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
                 break;
             }
     }
+    */
 }
 
 void MainWindow::moveEvent(QMoveEvent *event)
@@ -285,6 +286,12 @@ void MainWindow::moveEvent(QMoveEvent *event)
         }
     }*/
     hide_subwidgets();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    qDebug() << "closeEvent";
+    delete this;
 }
 
 void MainWindow::initialize_graph(){
@@ -315,6 +322,14 @@ void MainWindow::initialize_graph(){
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "Destructor";
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        delete chmini[i];
+        delete chan[i];
+    }
+    delete ConnectForm;
+    delete socket;
+    delete destIP;
     delete ui;
 }
 
@@ -448,7 +463,7 @@ void MainWindow::on_btn_graph_zoomout_clicked()
 
 void MainWindow::on_btn_start_reg_clicked()
 {
-    QByteArray *datagram = new QByteArray(); // data from external function
+    QByteArray *datagram = new QByteArray();
     datagram->append("Hello from DIMA");
     socket->write(*datagram);
 }
@@ -457,7 +472,18 @@ void MainWindow::ping_device(QString ip_str)
 {
     *destIP = QHostAddress(ip_str);
     socket->connectToHost(*destIP,65001,QIODevice::ReadWrite);
-    emit ping_response(ip_str=="192.168.0.104");
+    //сделать проверку связи
+    //emit ping_response(ip_str=="192.168.0.104");
+    QByteArray *datagram = new QByteArray();
+    datagram->append(QByteArray::fromHex("0202"));
+    socket->write(*datagram);
+    datagram->clear();
+    datagram->append(socket->read(320));
+    if(datagram[0].toInt()==2 && datagram[1].toInt()==3){
+        emit ping_response(true);
+    }else{
+        emit ping_response(false);
+    }
 }
 
 void MainWindow::hide_subwidgets()

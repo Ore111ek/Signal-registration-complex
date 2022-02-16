@@ -63,6 +63,7 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void moveEvent(QMoveEvent * event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void on_btn_conForm_clicked();
