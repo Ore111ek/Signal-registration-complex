@@ -16,6 +16,12 @@
     <height>325</height>
    </size>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>432</width>
+    <height>325</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Соединение с регистратором</string>
   </property>
@@ -157,7 +163,7 @@ border: 1px solid gray;</string>
              <set>Qt::ImhPreferNumbers</set>
             </property>
             <property name="text">
-             <string>192</string>
+             <string>132</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -216,7 +222,7 @@ border: 1px solid gray;</string>
              <set>Qt::ImhPreferNumbers</set>
             </property>
             <property name="text">
-             <string>168</string>
+             <string>9</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -275,7 +281,7 @@ border: 1px solid gray;</string>
              <set>Qt::ImhPreferNumbers</set>
             </property>
             <property name="text">
-             <string>0</string>
+             <string>36</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -334,7 +340,7 @@ border: 1px solid gray;</string>
              <set>Qt::ImhPreferNumbers</set>
             </property>
             <property name="text">
-             <string>104</string>
+             <string>64</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

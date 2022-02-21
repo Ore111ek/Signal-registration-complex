@@ -14,20 +14,24 @@ SOURCES += \
     connectionform.cpp \
     main.cpp \
     mainwindow.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    settingsform.cpp
 
 HEADERS += \
+    DeviceConstants.h \
     chanform.h \
     chminiform.h \
     connectionform.h \
     mainwindow.h \
-    qcustomplot.h
+    qcustomplot.h \
+    settingsform.h
 
 FORMS += \
     chanform.ui \
     chminiform.ui \
     connectionform.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    settingsform.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

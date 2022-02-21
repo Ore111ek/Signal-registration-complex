@@ -20,20 +20,18 @@ QColor graph_palette[NUM_OF_COLORS] = {
     QColor(200, 200, 180) // Grey
 };
 
-
+void MainWindow::delayms()
+{
+    QTime dieTime= QTime::currentTime().addMSecs(delayTime);
+    while (QTime::currentTime() < dieTime)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    ConnectForm = new ConnectionForm;
-    connect(ui->btn_conForm, SIGNAL (clicked()), this, SLOT (on_btn_conForm_clicked()));
-
-    connect(ConnectForm, SIGNAL (ping(QString)), this, SLOT (ping_device(QString)));
-    connect(this, SIGNAL (ping_response(bool)), ConnectForm, SLOT (handle_response(bool)));
-
 
     for(int j = 0; j < NUM_OF_COLORS; j++){
         graph.ch[j].x.clear();
@@ -65,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
         chmini[i]->hide();
 
         // Новые строки
-        chan[i] = new ChanForm();
+        chan[i] = new ChanForm(i+1);
         chan[i]->hide();
         chan[i]->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     }
@@ -87,46 +85,134 @@ MainWindow::MainWindow(QWidget *parent)
     chbutton[6] = ui->btn_ch7;
     chbutton[7] = ui->btn_ch8;
     for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        // Прятать настройки каналов при нажатии на кнопки
         connect(chbutton[i], SIGNAL (clicked()), this, SLOT (hide_subwidgets()));
         connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (hide_subwidgets()));
         connect(chmini[i], SIGNAL (edit_clicked(QPoint)), this, SLOT (hide_subwidgets()));
+        // Открытия мини форм и нажатие кнопок на них
         connect(chbutton[i], SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
         connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (on_mini_ch_close_clicked()));
         connect(chmini[i], SIGNAL (edit_clicked(QPoint)), chan[i], SLOT (show_settings(QPoint)));
+        // Обработка настроек канала
+        connect(chan[i], SIGNAL (sendChSettings(int,int,int,bool,int,int)), this, SLOT (handleChSettings(int,int,int,bool,int,int)));
     }
 
-/*    connect(ui->btn_ch1, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch2, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch3, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch4, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch5, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch6, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch7, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked()));
-    connect(ui->btn_ch8, SIGNAL (clicked()), this, SLOT (on_btn_ch_clicked())); */
+    SettingForm = new SettingsForm();
+
+    //ChSettingsForm = new QWidget();
+    //ChSettingsForm->setWindowTitle("Панель настроек");
+    //ChSettingsForm->setAttribute(Qt::WA_DeleteOnClose,true);
+    //connect(ChSettingsForm , SIGNAL(destroyed()), this,SLOT(releaseChFromLayout()));
+
+    /*
+    QGridLayout *layoutChSettings = new QGridLayout;
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        layoutChSettings->addWidget(chan[i], int(i/4), i%4);
+        chan[i]->show();
+    }
+    ChSettingsForm->setLayout(layoutChSettings);
+    ChSettingsForm->show();
+    */
+
+/*
+        QHBoxLayout *hlayout=new QHBoxLayout;
+        hlayout->setAlignment(Qt::AlignTop);
+        hlayout->addWidget(x);
+        layout->addChildLayout(hlayout);
 
 
+    this->setLayout(layout);
+        this->show();
+
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+
+    }
+
+    win = new QWidget();
+    layout=new QGridLayout;
+    //layout->setAlignment(Qt::AlignTop);
+
+    for(int i =0; i <8; i++){
+        //layout->addWidget(chform[i]);
+        layout->addWidget(chform[i], int(i/4), i%4);
+    }
+    win->setLayout(layout);
+   // win->setMinimumSize(600,600);
+    win->show();
+
+    */
+
+    // Network
     socket = new QUdpSocket(this);
-    destIP = new QHostAddress("192.168.0.104");
-    socket->connectToHost(*destIP,65001,QIODevice::ReadWrite);
-    connect(socket,SIGNAL(readyRead()),this,SLOT(readPendingDatagrams()));
+    getSocket = new QUdpSocket(this);
+    getSocket->bind(4000, QUdpSocket::ShareAddress); // Прослушиваем порт 4000
+    destIP = new QHostAddress("132.9.36.64");
+    socket->connectToHost(*destIP,2054,QIODevice::WriteOnly);
+    datagram = new QByteArray();
+    ConnectionSet = true;//false на самом деле
+    badResponse = false;
+    wrongCommand = false;
+
+    connect(getSocket,SIGNAL(readyRead()),this,SLOT(readyReadUDP()));// Функция обработки входящих пакетов от МК
+
+    ConnectForm = new ConnectionForm;
+    connect(ui->btn_conForm, SIGNAL (clicked()), this, SLOT (on_btn_conForm_clicked()));
+    connect(ConnectForm, SIGNAL (ping(QString)), this, SLOT (ping_device(QString)));
+    connect(this, SIGNAL (ping_response(bool)), ConnectForm, SLOT (handle_response(bool)));
 
 
 }
-
+// Обработка входящих пакетов
 void MainWindow::readyReadUDP()
 {
     QByteArray buffer;
-    buffer.resize(socket->pendingDatagramSize());
-
+    buffer.resize(getSocket->pendingDatagramSize()); //320 байт, скорее всего
     QHostAddress sender;
     quint16 senderPort;
 
-    socket->readDatagram(buffer.data(), buffer.size(),
+    getSocket->readDatagram(buffer.data(), buffer.size(),
                         &sender, &senderPort);
 
     qDebug() << "Message from: " << sender.toString();
     qDebug() << "Message port: " << senderPort;
     qDebug() << "Message: " << buffer;
+
+    if(buffer.at(0)==0x02){        // Пришёл ответ из 2 байт
+        if(datagram->at(1)==0x02){ // Если отправляли ping
+            if(buffer.at(1)==0x03){ // Ответ правильный
+                emit ping_response(true); // То связь установлена
+                ConnectionSet = true;
+            }else {
+                emit ping_response(false); // Иначе связь не установлена
+                ConnectionSet = false;
+            }
+        }
+    }
+    else {  // Пришёл ответ > 2 байт
+        switch(buffer.at(1)){
+            case 0x01://Опрос квитанции FIFO??
+            break;
+            case 0x70://Чтение пакета FIFO?
+            break;
+            default: // Ответ - это подтверждение выполнения команды
+                if(buffer.at(2)==-1){
+                    //Всё хорошо, обработка не требуется
+                    qDebug() << "Message correct: " << buffer;
+                    badResponse = false;
+                }else if(buffer.at(2)==-18){
+                    //Ошибка
+                    qDebug() << "Error: " << buffer;
+                    if(!badResponse){
+                        socket->write(*datagram); // Повторная отправка пакета
+                        delayms();
+                        badResponse = true;
+                    }else{
+                        wrongCommand = true;
+                    }
+                }
+            break;
+        }
+    }
 }
 
 void MainWindow::graph_setDark(){
@@ -216,6 +302,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     hide_subwidgets();
+    qDebug() << "Left Mouse button pressed";
     /*
     switch (event->button()) {
             case Qt::LeftButton:
@@ -291,7 +378,13 @@ void MainWindow::moveEvent(QMoveEvent *event)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "closeEvent";
-    delete this;
+    event->accept(); //delete this;
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        delete chmini[i];
+        delete chan[i];
+    }
+    delete ConnectForm;
+
 }
 
 void MainWindow::initialize_graph(){
@@ -322,15 +415,15 @@ void MainWindow::initialize_graph(){
 
 MainWindow::~MainWindow()
 {
-    qDebug() << "Destructor";
-    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+    /*for(int i = 0; i < NUM_OF_CHANNELS; i++){
         delete chmini[i];
         delete chan[i];
     }
-    delete ConnectForm;
+    delete ConnectForm; */
     delete socket;
     delete destIP;
     delete ui;
+    qDebug() << "Destructor";
 }
 
 void MainWindow::on_btn_conForm_clicked()
@@ -360,7 +453,6 @@ void MainWindow::on_btn_addMath_clicked()
 {
 
 }
-
 
 void MainWindow::on_btn_graph_theme_clicked()
 {
@@ -403,6 +495,7 @@ void MainWindow::on_btn_save_graph_bmp_clicked()
 
 void MainWindow::on_btn_graph_zone_clicked()
 {
+    // Поменять на вызов диалогового окна с выбором отборажаемого диапазона
     if(ui->customPlot->selectionRectMode() == QCP::srmNone){
         ui->customPlot->setSelectionRectMode(QCP::srmZoom);}
     else {ui->customPlot->setSelectionRectMode(QCP::srmNone);}
@@ -463,7 +556,8 @@ void MainWindow::on_btn_graph_zoomout_clicked()
 
 void MainWindow::on_btn_start_reg_clicked()
 {
-    QByteArray *datagram = new QByteArray();
+    // Изменить на отправку команды регистрации
+    datagram->clear();
     datagram->append("Hello from DIMA");
     socket->write(*datagram);
 }
@@ -471,12 +565,16 @@ void MainWindow::on_btn_start_reg_clicked()
 void MainWindow::ping_device(QString ip_str)
 {
     *destIP = QHostAddress(ip_str);
-    socket->connectToHost(*destIP,65001,QIODevice::ReadWrite);
+    socket->disconnectFromHost();
+    socket->connectToHost(*destIP,2054,QIODevice::ReadWrite);
     //сделать проверку связи
     //emit ping_response(ip_str=="192.168.0.104");
-    QByteArray *datagram = new QByteArray();
+    datagram->clear();
     datagram->append(QByteArray::fromHex("0202"));
+    emit ping_response(false); // Связь не установлена
+    ConnectionSet = false;
     socket->write(*datagram);
+    /*
     datagram->clear();
     datagram->append(socket->read(320));
     if(datagram[0].toInt()==2 && datagram[1].toInt()==3){
@@ -484,6 +582,64 @@ void MainWindow::ping_device(QString ip_str)
     }else{
         emit ping_response(false);
     }
+    */
+}
+
+void MainWindow::handleChSettings(int channel, int range, int divider, bool resist, int offset, int filter)
+{
+    if(ConnectionSet){
+        wrongCommand = false;
+
+        datagram->clear();
+        badResponse = false;
+        datagram->append(QByteArray::fromHex("03"));
+        divider == 0 ? datagram->append(QByteArray::fromHex("3C")) : datagram->append(QByteArray::fromHex("3D"));
+        char ch = channel & 0xFF;
+        datagram->append(ch);
+        socket->write(*datagram); // set divider - Устанавливать Делитель и Усиление в зависимости от диапазона!!!
+
+        delayms();
+
+        datagram->clear();
+        badResponse = false;
+        datagram->append(QByteArray::fromHex("03"));
+        resist == 0 ? datagram->append(QByteArray::fromHex("3B")) : datagram->append(QByteArray::fromHex("3A"));
+        datagram->append(ch);
+        socket->write(*datagram); // set resistance
+
+        delayms();
+
+        datagram->clear();
+        badResponse = false;
+        datagram->append(QByteArray::fromHex("050A"));
+        datagram->append(ch);
+        char offset1 = (offset>>8) & 0xFF;
+        char offset2 = offset & 0xFF;
+        datagram->append(offset2);
+        datagram->append(offset1);
+        socket->write(*datagram); // set offset
+
+        /* Установка смещения сразу на 4 канала
+        datagram->append(QByteArray::fromHex("06"));
+        channel < 5 ? datagram->append(QByteArray::fromHex("12")) : datagram->append(QByteArray::fromHex("13"));
+        datagram->append(QByteArray::fromHex("0300"));
+        char offset1 = (offset>>8) & 0xFF;
+        char offset2 = offset & 0xFF;
+        datagram->append(offset1);
+        datagram->append(offset2);
+        socket->write(*datagram); // set offset
+        datagram->clear();*/
+        delayms();
+        datagram->clear();
+
+        if(wrongCommand){
+            QMessageBox::warning(this, "Ошибка выполнения","Одна из команд не была выполнена.    \n Проверьте вводимые данные и повторите операцию  \n");
+            wrongCommand = false;
+        }
+    } else {
+        QMessageBox::critical(this, "Ошибка соединения","Соединение с регистратором    \n        не установлено\n");
+    }
+
 }
 
 void MainWindow::hide_subwidgets()
@@ -492,7 +648,6 @@ void MainWindow::hide_subwidgets()
         chan[i]->hide();
     }
 }
-
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
@@ -506,5 +661,33 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 void MainWindow::on_mousePress_subwidget(QMouseEvent *event)
 {
     mousePressEvent(event);
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    //Убрать кнопку и spin
+    delayTime = ui->spinBox->value();
+}
+
+
+void MainWindow::on_btn_settings_clicked()
+{
+    /*
+    QGridLayout *layoutChSettings = new QGridLayout;
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        layoutChSettings->addWidget(chan[i], int(i/4), i%4);
+    }
+    ChSettingsForm->setLayout(layoutChSettings);
+    ChSettingsForm->show();*/
+    SettingForm->setChannelsGrid(chan);
+    SettingForm->show();
+
+/*
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        chan[i]->show();
+    }
+*/
+
+
 }
 

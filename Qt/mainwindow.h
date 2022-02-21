@@ -2,18 +2,21 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QLayout>
 #include <QVector>
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QMoveEvent>
 #include <QUdpSocket>
 #include "connectionform.h"
+#include "settingsform.h"
 #include "chminiform.h"
 #include "chanform.h"
+#include "DeviceConstants.h"
 
 #define NUM_OF_COLORS 13
-#define NUM_OF_CHANNELS 8
 #define MAX_MEASUREMENTS 4
 
 QT_BEGIN_NAMESPACE
@@ -45,18 +48,25 @@ private:
     Ui::MainWindow *ui;
     Graph graph;
     ConnectionForm *ConnectForm;
+    SettingsForm *SettingForm;
+    QWidget *ChSettingsForm;
     QPushButton *button[12];
     QWidget *chmini[8];
-    QWidget *chan[8];
+    ChanForm *chan[8];
     QPushButton *chbutton[12];
-    QUdpSocket *socket;
-
+    QUdpSocket *socket, *getSocket;
     QHostAddress *destIP;
+    QByteArray *datagram;
+    bool ConnectionSet;
+    bool badResponse;
+    bool wrongCommand;
+    int delayTime = 100;
 
     void initialize_graph();
     void graph_setDark();
     void graph_setLight();
 
+    void delayms();
 protected:
     void keyPressEvent(QKeyEvent * e) override; //А НУЖНЫ ЛИ
     void keyReleaseEvent(QKeyEvent * e) override; // НАЖАТИЯ КНОПОК КЛАВИАТУРЫ?? ПРИДУМАТЬ ГОРЯЧИЕ КЛАВИШИ
@@ -87,8 +97,13 @@ private slots:
     void on_tabWidget_currentChanged(int index);
     void on_mousePress_subwidget(QMouseEvent *event);
 
+    void on_pushButton_clicked();
+
+    void on_btn_settings_clicked();
+
 public slots:
     void ping_device(QString ip_str);
+    void handleChSettings(int channel,int range,int divider,bool resist,int offset,int filter);
     void hide_subwidgets();
 
 signals:
