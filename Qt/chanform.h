@@ -30,13 +30,11 @@ private slots:
 
     void on_DAC_mvSpin_valueChanged(double arg1);
 
-    void update_Settings(int range,int divider,bool resist,int offset,int filter);
+    void update_Settings(int range, bool resist, int offset, int filter);
 
     void on_radio_1MOm_clicked();
 
     void on_radio_50Om_clicked();
-
-    void on_comboBox_divider_currentIndexChanged(int index);
 
     void on_comboBox_range_currentIndexChanged(int index);
 
@@ -47,8 +45,8 @@ private:
     int numOfChannel;
 
 signals:
-    void sendChSettings(int channel,int range,int divider,bool resist,int offset,int filter);
-    void settings_changed(int range,int divider,bool resist,int offset,int filter);
+    void sendChSettings(int channel,int range,bool resist,int offset,int filter);
+    void settings_changed(int range,bool resist,int offset,int filter);
 };
 
 #endif // CHANFORM_H

@@ -103,11 +103,11 @@ private slots:
 
 public slots:
     void ping_device(QString ip_str);
-    void handleChSettings(int channel,int range,int divider,bool resist,int offset,int filter);
+    void handleChSettings(int channel, int range, bool resist, int offset, int filter);
     void hide_subwidgets();
 
 signals:
     void ping_response(bool state);
-    void save_newChSettings(int channel,int range,int divider,bool resist,int offset,int filter);
+    void save_newChSettings(int channel,int range,bool resist,int offset,int filter);
 };
 #endif // MAINWINDOW_H

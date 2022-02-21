@@ -94,8 +94,8 @@ MainWindow::MainWindow(QWidget *parent)
         connect(chmini[i], SIGNAL (close_clicked()), this, SLOT (on_mini_ch_close_clicked()));
         connect(chmini[i], SIGNAL (edit_clicked(QPoint)), chan[i], SLOT (show_settings(QPoint)));
         // Обработка настроек канала
-        connect(chan[i], SIGNAL (sendChSettings(int,int,int,bool,int,int)), this, SLOT (handleChSettings(int,int,int,bool,int,int)));
-        connect(this, SIGNAL (save_newChSettings(int,int,int,bool,int,int)), chmini[i], SLOT (update_settings(int,int,int,bool,int,int)));
+        connect(chan[i], SIGNAL (sendChSettings(int,int,bool,int,int)), this, SLOT (handleChSettings(int,int,bool,int,int)));
+        connect(this, SIGNAL (save_newChSettings(int,int,bool,int,int)), chmini[i], SLOT (update_settings(int,int,bool,int,int)));
     }
 
     SettingForm = new SettingsForm(nullptr, chan);
@@ -584,7 +584,7 @@ void MainWindow::ping_device(QString ip_str)
     */
 }
 
-void MainWindow::handleChSettings(int channel, int range, int divider, bool resist, int offset, int filter)
+void MainWindow::handleChSettings(int channel, int range, bool resist, int offset, int filter)
 {
     if(ConnectionSet){
         wrongCommand = false;
@@ -594,7 +594,7 @@ void MainWindow::handleChSettings(int channel, int range, int divider, bool resi
         goodResponse = false;
 
         datagram->append(QByteArray::fromHex("03"));
-        divider == 0 ? datagram->append(QByteArray::fromHex("3C")) : datagram->append(QByteArray::fromHex("3D"));
+        range > 2 ? datagram->append(QByteArray::fromHex("3C")) : datagram->append(QByteArray::fromHex("3D"));
         char ch = channel & 0xFF;
         datagram->append(ch);
         socket->write(*datagram); // set divider - Устанавливать Делитель и Усиление в зависимости от диапазона!!!
@@ -634,18 +634,66 @@ void MainWindow::handleChSettings(int channel, int range, int divider, bool resi
         datagram->append(offset2);
         socket->write(*datagram); // set offset
         datagram->clear();*/
+
+        delayms();
+        if(!goodResponse) wrongCommand = true;
+        datagram->clear();
+        badResponse = false;
+        goodResponse = false;
+
+        datagram->append(QByteArray::fromHex("050B")); //05 0B ch dd1 dd2
+        datagram->append(ch);
+        int lmhData;
+        switch (range){
+            case 0: lmhData = 0b1010;
+            break;
+            case 1: lmhData = 0b10110;
+            break;
+            case 2: lmhData = 0b10011;
+            break;
+            case 3: lmhData = 0b1010;
+            break;
+            case 4: lmhData = 0b10011;
+            break;
+            default: lmhData = 0b11010;
+            break;
+        }
+        switch (filter){
+            case 0: lmhData += 0x000;
+            break;
+            case 1: lmhData += 0x180;
+            break;
+            case 2: lmhData += 0x140;
+            break;
+            case 3: lmhData += 0x100;
+            break;
+            case 4: lmhData += 0x0C0;
+            break;
+            case 5: lmhData += 0x080;
+            break;
+            case 6: lmhData += 0x040;
+            break;
+            default: lmhData += 0x000;
+            break;
+        }
+        char lmhData1 = (lmhData>>8) & 0xFF;
+        char lmhData2 = lmhData & 0xFF;
+        datagram->append(lmhData2);
+        datagram->append(lmhData1);
+        socket->write(*datagram); // set Attenuation, Gain and filter
+
         delayms();
         if(!goodResponse) wrongCommand = true;
         datagram->clear();
 
         // **** ТОЛЬКО ДЛЯ ОТЛАДКИ БЕЗ МК **** //
-         wrongCommand = false;
+         if(!ui->checkBox->isChecked()) wrongCommand = false;
         // ****                    **** //
         if(wrongCommand){ // Если на один из запросов (команд) не пришёл ответ подтверждение или пришёл ответ - сообщение об ошибке
             QMessageBox::warning(this, "Ошибка выполнения","Одна из команд не была выполнена.    \n Проверьте вводимые данные и повторите операцию  \n");
             wrongCommand = false;
         }else{ // Команды успешно выполнены
-            emit save_newChSettings(channel, range, divider, resist, offset, filter);
+            emit save_newChSettings(channel, range, resist, offset, filter);
         }
     } else {
         QMessageBox::critical(this, "Ошибка соединения","Соединение с регистратором    \n        не установлено\n");

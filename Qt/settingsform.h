@@ -22,13 +22,14 @@ public:
 private slots:
 
     void on_btn_setAll_clicked();
-    void changeAllCh(int channel, int range, int divider, bool resist, int offset, int filter);
+    void changeAllCh(int channel, int range, bool resist, int offset, int filter);
 protected:
      void closeEvent(QCloseEvent *event) override;
 private:
     Ui::SettingsForm *ui;
     ChanForm *ch[8];
     QLayout *layout;
+    ChanForm * CommonChan;
 
 signals:
     void setAllSettings();

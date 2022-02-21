@@ -29,7 +29,7 @@ void ChMiniForm::on_editButton_clicked()
     emit edit_clicked(coord);
 }
 
-void ChMiniForm::update_settings(int channel, int range, int divider, bool resist, int offset, int filter)
+void ChMiniForm::update_settings(int channel, int range, bool resist, int offset, int filter)
 {
     if(channel == ch_num){
         QString Str = "";
