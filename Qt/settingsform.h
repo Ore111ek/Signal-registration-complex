@@ -15,13 +15,14 @@ class SettingsForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit SettingsForm(QWidget *parent = nullptr);
+    explicit SettingsForm(QWidget *parent = nullptr, ChanForm *chan[] = nullptr);
     ~SettingsForm();
-    void setChannelsGrid(ChanForm *chan[]);
+    void setChannelsGrid();
 
 private slots:
 
     void on_btn_setAll_clicked();
+    void changeAllCh(int channel, int range, int divider, bool resist, int offset, int filter);
 protected:
      void closeEvent(QCloseEvent *event) override;
 private:

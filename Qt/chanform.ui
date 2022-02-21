@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>200</width>
-    <height>358</height>
+    <height>380</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="maximumSize">
    <size>
     <width>200</width>
-    <height>360</height>
+    <height>380</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -41,6 +41,25 @@
    <property name="bottomMargin">
     <number>7</number>
    </property>
+   <item>
+    <widget class="QLabel" name="label_chNumber">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Канал 1</string>
+     </property>
+    </widget>
+   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
@@ -336,12 +355,27 @@
        </item>
        <item>
         <property name="text">
+         <string>650 МГц</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>350 МГц</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>200 МГц</string>
         </property>
        </item>
        <item>
         <property name="text">
          <string>100 МГц</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>20 МГц</string>
         </property>
        </item>
       </widget>

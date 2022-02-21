@@ -20,8 +20,11 @@ private slots:
 
     void on_editButton_clicked();
 
+    void update_settings(int channel,int range,int divider,bool resist,int offset,int filter);
+
 private:
     Ui::ChMiniForm *ui;
+    int ch_num;
 
 signals:
     void close_clicked();

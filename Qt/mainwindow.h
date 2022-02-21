@@ -57,10 +57,11 @@ private:
     QUdpSocket *socket, *getSocket;
     QHostAddress *destIP;
     QByteArray *datagram;
-    bool ConnectionSet;
-    bool badResponse;
-    bool wrongCommand;
-    int delayTime = 100;
+    bool ConnectionSet; // Флаг установки соединения, 1 - связь установлена
+    bool badResponse; // В ответ на запрос приходит сообщение об ошибке 03 xx EE
+    bool goodResponse;  // В ответ на запрос приходит сообщение о подтверждении выполнения 03 xx FF
+    bool wrongCommand;  // Если запрос был повторён и ответ всё ещё 03 xx EE, то отправляемая команда не корректна
+    int delayTime = 100; // Задержка между отправкой двух последовательных команд
 
     void initialize_graph();
     void graph_setDark();
@@ -77,7 +78,6 @@ protected:
 
 private slots:
     void on_btn_conForm_clicked();
-    void on_btn_addMath_clicked();
     void on_mini_ch_close_clicked();
     void on_btn_ch_clicked();
     void on_btn_graph_theme_clicked();
@@ -108,5 +108,6 @@ public slots:
 
 signals:
     void ping_response(bool state);
+    void save_newChSettings(int channel,int range,int divider,bool resist,int offset,int filter);
 };
 #endif // MAINWINDOW_H

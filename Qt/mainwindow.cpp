@@ -95,9 +95,10 @@ MainWindow::MainWindow(QWidget *parent)
         connect(chmini[i], SIGNAL (edit_clicked(QPoint)), chan[i], SLOT (show_settings(QPoint)));
         // Обработка настроек канала
         connect(chan[i], SIGNAL (sendChSettings(int,int,int,bool,int,int)), this, SLOT (handleChSettings(int,int,int,bool,int,int)));
+        connect(this, SIGNAL (save_newChSettings(int,int,int,bool,int,int)), chmini[i], SLOT (update_settings(int,int,int,bool,int,int)));
     }
 
-    SettingForm = new SettingsForm();
+    SettingForm = new SettingsForm(nullptr, chan);
 
     //ChSettingsForm = new QWidget();
     //ChSettingsForm->setWindowTitle("Панель настроек");
@@ -151,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent)
     datagram = new QByteArray();
     ConnectionSet = true;//false на самом деле
     badResponse = false;
+    goodResponse = false;
     wrongCommand = false;
 
     connect(getSocket,SIGNAL(readyRead()),this,SLOT(readyReadUDP()));// Функция обработки входящих пакетов от МК
@@ -199,6 +201,7 @@ void MainWindow::readyReadUDP()
                     //Всё хорошо, обработка не требуется
                     qDebug() << "Message correct: " << buffer;
                     badResponse = false;
+                    goodResponse = true;
                 }else if(buffer.at(2)==-18){
                     //Ошибка
                     qDebug() << "Error: " << buffer;
@@ -398,6 +401,7 @@ void MainWindow::initialize_graph(){
         ui->customPlot->addGraph();
         ui->customPlot->graph(j)->addData(graph.ch[j].x, graph.ch[j].y);
         ui->customPlot->graph(j)->setPen(QPen(graph_palette[j], 1.2));
+        ui->customPlot->graph(j)->setVisible(false); // Hide Graphs
     }
     ui->customPlot->replot();
 
@@ -447,11 +451,6 @@ void MainWindow::on_mini_ch_close_clicked()
     chbutton[n]->show();
     ui->customPlot->graph(n)->setVisible(false);
     ui->customPlot->replot();
-}
-
-void MainWindow::on_btn_addMath_clicked()
-{
-
 }
 
 void MainWindow::on_btn_graph_theme_clicked()
@@ -592,6 +591,8 @@ void MainWindow::handleChSettings(int channel, int range, int divider, bool resi
 
         datagram->clear();
         badResponse = false;
+        goodResponse = false;
+
         datagram->append(QByteArray::fromHex("03"));
         divider == 0 ? datagram->append(QByteArray::fromHex("3C")) : datagram->append(QByteArray::fromHex("3D"));
         char ch = channel & 0xFF;
@@ -599,18 +600,22 @@ void MainWindow::handleChSettings(int channel, int range, int divider, bool resi
         socket->write(*datagram); // set divider - Устанавливать Делитель и Усиление в зависимости от диапазона!!!
 
         delayms();
-
+        if(!goodResponse) wrongCommand = true;
         datagram->clear();
         badResponse = false;
+        goodResponse = false;
+
         datagram->append(QByteArray::fromHex("03"));
         resist == 0 ? datagram->append(QByteArray::fromHex("3B")) : datagram->append(QByteArray::fromHex("3A"));
         datagram->append(ch);
         socket->write(*datagram); // set resistance
 
         delayms();
-
+        if(!goodResponse) wrongCommand = true;
         datagram->clear();
         badResponse = false;
+        goodResponse = false;
+
         datagram->append(QByteArray::fromHex("050A"));
         datagram->append(ch);
         char offset1 = (offset>>8) & 0xFF;
@@ -630,11 +635,17 @@ void MainWindow::handleChSettings(int channel, int range, int divider, bool resi
         socket->write(*datagram); // set offset
         datagram->clear();*/
         delayms();
+        if(!goodResponse) wrongCommand = true;
         datagram->clear();
 
-        if(wrongCommand){
+        // **** ТОЛЬКО ДЛЯ ОТЛАДКИ БЕЗ МК **** //
+         wrongCommand = false;
+        // ****                    **** //
+        if(wrongCommand){ // Если на один из запросов (команд) не пришёл ответ подтверждение или пришёл ответ - сообщение об ошибке
             QMessageBox::warning(this, "Ошибка выполнения","Одна из команд не была выполнена.    \n Проверьте вводимые данные и повторите операцию  \n");
             wrongCommand = false;
+        }else{ // Команды успешно выполнены
+            emit save_newChSettings(channel, range, divider, resist, offset, filter);
         }
     } else {
         QMessageBox::critical(this, "Ошибка соединения","Соединение с регистратором    \n        не установлено\n");
@@ -679,8 +690,10 @@ void MainWindow::on_btn_settings_clicked()
     }
     ChSettingsForm->setLayout(layoutChSettings);
     ChSettingsForm->show();*/
-    SettingForm->setChannelsGrid(chan);
+    SettingForm->setChannelsGrid();
+    SettingForm->move(5,5);
     SettingForm->show();
+
 
 /*
     for(int i = 0; i < NUM_OF_CHANNELS; i++){
