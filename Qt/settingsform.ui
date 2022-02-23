@@ -65,18 +65,7 @@
            <property name="title">
             <string>Изменение настроек всех каналов</string>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <widget class="ChanForm" name="CommonChan" native="true">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>100</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <layout class="QVBoxLayout" name="verticalLayout_2"/>
           </widget>
          </item>
          <item>
@@ -94,8 +83,16 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_setAll">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Установить настройки в регистратор</string>
+            <string>Установить
+настройки
+в регистратор</string>
            </property>
           </widget>
          </item>
@@ -114,20 +111,25 @@
          </item>
         </layout>
        </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ChanForm</class>
-   <extends>QWidget</extends>
-   <header>chanform.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QLayout>
+#include <QBoxLayout>
 #include <QVector>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -54,6 +55,7 @@ private:
     QWidget *chmini[8];
     ChanForm *chan[8];
     QPushButton *chbutton[12];
+    QVBoxLayout *lay_math;
     QUdpSocket *socket, *getSocket;
     QHostAddress *destIP;
     QByteArray *datagram;
@@ -62,6 +64,14 @@ private:
     bool goodResponse;  // В ответ на запрос приходит сообщение о подтверждении выполнения 03 xx FF
     bool wrongCommand;  // Если запрос был повторён и ответ всё ещё 03 xx EE, то отправляемая команда не корректна
     int delayTime = 100; // Задержка между отправкой двух последовательных команд
+
+
+    //Временно?
+    int cur_fpga = 0;
+    int cur_x[8] = {0,0,0,0,0,0,0,0};
+    int b_channel=1;
+    //
+
 
     void initialize_graph();
     void graph_setDark();
@@ -100,6 +110,22 @@ private slots:
     void on_pushButton_clicked();
 
     void on_btn_settings_clicked();
+
+    void on_btn_start_reg_2_clicked();
+
+    void on_btn_start_reg_3_clicked();
+
+    void on_btn_start_reg_4_clicked();
+
+    void on_btn_start_reg_5_clicked();
+
+    void on_btn_start_reg_7_clicked();
+
+    void on_btn_start_reg_6_clicked();
+
+    void on_btn_start_reg_8_clicked();
+
+    void on_btn_add_math_clicked();
 
 public slots:
     void ping_device(QString ip_str);

@@ -98,6 +98,16 @@ MainWindow::MainWindow(QWidget *parent)
         connect(this, SIGNAL (save_newChSettings(int,int,bool,int,int)), chmini[i], SLOT (update_settings(int,int,bool,int,int)));
     }
 
+    lay_math = new QVBoxLayout();
+    QPushButton *btn_addMath = new QPushButton("Добавить измерение");
+    btn_addMath->setMinimumHeight(60);
+    btn_addMath->setStyleSheet("QPushButton {\n border: 1px solid #8f8f91;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n stop: 0 #f6f7fa, stop: 1 #dadbde);\n min-width: 60px;\n }\n\nQPushButton:hover {\n border: 1px solid #bc3be3;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #f6f7fa, stop: 1 #dadbde);\n     min-width: 60px;\n }\n\n QPushButton:pressed {\n     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #dadbde, stop: 1 #f6f7fa);\n }\n\n QPushButton:flat {\n     border: none; /* для плоской кнопки границы нет */\n }\n\n QPushButton:default {\n     border-color: navy; /* делаем кнопку по умолчанию выпуклой */\n }");
+    lay_math->addSpacerItem(new QSpacerItem(40,40,QSizePolicy::Minimum, QSizePolicy::Expanding));
+    lay_math->addWidget(btn_addMath);
+    ui->groupBox_math->setLayout(lay_math);
+    connect(btn_addMath, SIGNAL (clicked()), this, SLOT (on_btn_add_math_clicked()));
+
+
     SettingForm = new SettingsForm(nullptr, chan);
 
     //ChSettingsForm = new QWidget();
@@ -193,8 +203,33 @@ void MainWindow::readyReadUDP()
     else {  // Пришёл ответ > 2 байт
         switch(buffer.at(1)){
             case 0x01://Опрос квитанции FIFO??
+                ui->spinBox_2->setValue(buffer.at(2));
             break;
             case 0x70://Чтение пакета FIFO?
+                for(int w = 0; w < 160; w++){
+                    //ui->customPlot->graph(cur_fpga + (buffer.at(2*w+1)&0xC0)/128)->addData(cur_x[cur_fpga+(buffer.at(2*w+1)&0xC0)/64], (buffer.at(2*w+1)&0x0F)*256 + buffer.at(2*w));
+                    switch(buffer.at(2*w+1)&0xC0){
+                        case 0x00:
+                            ui->customPlot->graph(2*cur_fpga+b_channel)->addData(cur_x[2*cur_fpga+b_channel]+1, (buffer.at(2*w+1)&0x0F)*256 + buffer.at(2*w));
+                        break;
+                        case 0x40:
+                            ui->customPlot->graph(2*cur_fpga+b_channel)->addData(cur_x[2*cur_fpga+b_channel], (buffer.at(2*w+1)&0x0F)*256 + buffer.at(2*w));
+                        break;
+                        case 0x80:
+                            ui->customPlot->graph(2*cur_fpga+b_channel)->addData(cur_x[2*cur_fpga+b_channel]+3, (buffer.at(2*w+1)&0x0F)*256 + buffer.at(2*w));
+                        break;
+                        case 0xC0:
+                            ui->customPlot->graph(2*cur_fpga+b_channel)->addData(cur_x[2*cur_fpga+b_channel]+2, (buffer.at(2*w+1)&0x0F)*256 + buffer.at(2*w));
+                        break;
+                         default:break;
+                    }
+                    if(b_channel) b_channel=0;
+                    else b_channel=1;
+                    if(w % 8 == 7){
+                        cur_x[2*cur_fpga]+=4;
+                        cur_x[2*cur_fpga+1]+=4;
+                    }
+                }
             break;
             default: // Ответ - это подтверждение выполнения команды
                 if(buffer.at(2)==-1){
@@ -555,10 +590,15 @@ void MainWindow::on_btn_graph_zoomout_clicked()
 
 void MainWindow::on_btn_start_reg_clicked()
 {
-    // Изменить на отправку команды регистрации
-    datagram->clear();
-    datagram->append("Hello from DIMA");
-    socket->write(*datagram);
+    if(ConnectionSet){
+        for (int j = 0; j < NUM_OF_COLORS; j++){
+            ui->customPlot->graph(j)->data()->clear();
+        }
+
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0299"));
+        socket->write(*datagram);
+    }
 }
 
 void MainWindow::ping_device(QString ip_str)
@@ -750,5 +790,102 @@ void MainWindow::on_btn_settings_clicked()
 */
 
 
+}
+
+
+void MainWindow::on_btn_start_reg_2_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0207"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_3_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0201"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_4_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0219"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_5_clicked()
+{
+
+    if(ConnectionSet){
+        for(char fpga_num = 0; fpga_num < 4; fpga_num++){
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("0370")); // СЛОЖНО
+            datagram->append(fpga_num);
+            for(int i = 0; i < ui->spinBox_3->value(); i++){
+                socket->write(*datagram);
+                delayms();
+            }
+        }
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_7_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0220"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_6_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0218"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_8_clicked()
+{
+    char ch; int Data;
+    for(int i = 0; i < 8; i++){
+        datagram->clear();
+        ch = (i+1) & 0xFF;
+        datagram->append(QByteArray::fromHex("051A")); //05 0B ch dd1 dd2
+        datagram->append(ch);
+        Data = ui->spinBox_4->value();
+        char Data1 = (Data>>8) & 0xFF;
+        char Data2 = Data & 0xFF;
+        datagram->append(Data2);
+        datagram->append(Data1);
+        socket->write(*datagram); // set Attenuation, Gain and filter
+
+        delayms();
+    }
+
+}
+
+
+void MainWindow::on_btn_add_math_clicked()
+{
+    QPushButton *btn = new QPushButton("Измерение 1");
+    btn->setMinimumHeight(60);
+    btn->setStyleSheet("QPushButton {\n border: 1px solid #8f8f91;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n stop: 0 #f6f7fa, stop: 1 #dadbde);\n min-width: 60px;\n }\n\nQPushButton:hover {\n border: 1px solid #bc3be3;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #f6f7fa, stop: 1 #dadbde);\n     min-width: 60px;\n }\n\n QPushButton:pressed {\n     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #dadbde, stop: 1 #f6f7fa);\n }\n\n QPushButton:flat {\n     border: none; /* для плоской кнопки границы нет */\n }\n\n QPushButton:default {\n     border-color: navy; /* делаем кнопку по умолчанию выпуклой */\n }");
+    lay_math->insertWidget(0,btn);
 }
 
