@@ -188,7 +188,17 @@ void MainWindow::readyReadUDP()
     qDebug() << "Message from: " << sender.toString();
     qDebug() << "Message port: " << senderPort;
     qDebug() << "Message: " << buffer;
-
+    if((unsigned char)datagram->at(1)==0x9A){
+        ui->spinBox_2->setValue((unsigned char)buffer.at(0));
+    } else if(datagram->at(1)==0x70){
+        for(int w = 0; w < 80; w++){
+                ui->customPlot->graph(2*cur_fpga)->addData(cur_x[2*cur_fpga], (buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
+                ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+3)&0x0F)*256 + (unsigned char)buffer.at(4*w+2));
+                cur_x[2*cur_fpga]+=1;
+                cur_x[2*cur_fpga+1]+=1;
+        }
+        ui->customPlot->replot();
+    }else{
     if(buffer.at(0)==0x02){        // Пришёл ответ из 2 байт
         if(datagram->at(1)==0x02){ // Если отправляли ping
             if(buffer.at(1)==0x03){ // Ответ правильный
@@ -201,11 +211,19 @@ void MainWindow::readyReadUDP()
         }
     }
     else {  // Пришёл ответ > 2 байт
-        switch(buffer.at(1)){
-            case 0x01://Опрос квитанции FIFO??
-                ui->spinBox_2->setValue(buffer.at(2));
+        switch((unsigned char)buffer.at(1)){ // Аккуратнее, если код команды больше 127, то писать в обратном коде
+            case 0x9A://Опрос квитанции FIFO??
+                ui->spinBox_2->setValue((unsigned char)buffer.at(2));
             break;
             case 0x70://Чтение пакета FIFO?
+/*
+            for(int w = 0; w < 80; w++){
+                    ui->customPlot->graph(2*cur_fpga)->addData(cur_x[2*cur_fpga], (buffer.at(4*w+1)&0x0F)*256 + buffer.at(4*w));
+                    ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+3)&0x0F)*256 + buffer.at(4*w+2));
+                    cur_x[2*cur_fpga]+=1;
+                    cur_x[2*cur_fpga+1]+=1;
+            }*/
+            /*
                 for(int w = 0; w < 160; w++){
                     //ui->customPlot->graph(cur_fpga + (buffer.at(2*w+1)&0xC0)/128)->addData(cur_x[cur_fpga+(buffer.at(2*w+1)&0xC0)/64], (buffer.at(2*w+1)&0x0F)*256 + buffer.at(2*w));
                     switch(buffer.at(2*w+1)&0xC0){
@@ -229,15 +247,15 @@ void MainWindow::readyReadUDP()
                         cur_x[2*cur_fpga]+=4;
                         cur_x[2*cur_fpga+1]+=4;
                     }
-                }
+                }*/
             break;
             default: // Ответ - это подтверждение выполнения команды
-                if(buffer.at(2)==-1){
+                if((unsigned char)buffer.at(2)==0xFF){
                     //Всё хорошо, обработка не требуется
                     qDebug() << "Message correct: " << buffer;
                     badResponse = false;
                     goodResponse = true;
-                }else if(buffer.at(2)==-18){
+                }else if((unsigned char)buffer.at(2)==0xEE){
                     //Ошибка
                     qDebug() << "Error: " << buffer;
                     if(!badResponse){
@@ -250,6 +268,7 @@ void MainWindow::readyReadUDP()
                 }
             break;
         }
+    }
     }
 }
 
@@ -430,8 +449,8 @@ void MainWindow::initialize_graph(){
    // customPlot->rescaleAxes();
    // customPlot->yAxis->setRange(0, 2);
 
-    ui->customPlot->xAxis->setRange(0,100);
-    ui->customPlot->yAxis->setRange(-1,4);
+    ui->customPlot->xAxis->setRange(0,300);
+    ui->customPlot->yAxis->setRange(0,4096);
     for (int j = 0; j < NUM_OF_COLORS; j++){
         ui->customPlot->addGraph();
         ui->customPlot->graph(j)->addData(graph.ch[j].x, graph.ch[j].y);
@@ -597,6 +616,14 @@ void MainWindow::on_btn_start_reg_clicked()
 
         datagram->clear();
         datagram->append(QByteArray::fromHex("0299"));
+        socket->write(*datagram);
+        delayms();
+        delayms();
+        delayms();
+        delayms();
+        delayms();
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("029F"));
         socket->write(*datagram);
     }
 }
@@ -797,7 +824,7 @@ void MainWindow::on_btn_start_reg_2_clicked()
 {
     if(ConnectionSet){
         datagram->clear();
-        datagram->append(QByteArray::fromHex("0207"));
+        datagram->append(QByteArray::fromHex("030604"));
         socket->write(*datagram);
     }
 }
@@ -807,7 +834,7 @@ void MainWindow::on_btn_start_reg_3_clicked()
 {
     if(ConnectionSet){
         datagram->clear();
-        datagram->append(QByteArray::fromHex("0201"));
+        datagram->append(QByteArray::fromHex("039A00"));
         socket->write(*datagram);
     }
 }
@@ -827,10 +854,10 @@ void MainWindow::on_btn_start_reg_5_clicked()
 {
 
     if(ConnectionSet){
-        for(char fpga_num = 0; fpga_num < 4; fpga_num++){
+        for(cur_fpga = 0; cur_fpga < 4; cur_fpga++){
             datagram->clear();
             datagram->append(QByteArray::fromHex("0370")); // СЛОЖНО
-            datagram->append(fpga_num);
+            datagram->append(cur_fpga);
             for(int i = 0; i < ui->spinBox_3->value(); i++){
                 socket->write(*datagram);
                 delayms();
@@ -887,5 +914,47 @@ void MainWindow::on_btn_add_math_clicked()
     btn->setMinimumHeight(60);
     btn->setStyleSheet("QPushButton {\n border: 1px solid #8f8f91;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n stop: 0 #f6f7fa, stop: 1 #dadbde);\n min-width: 60px;\n }\n\nQPushButton:hover {\n border: 1px solid #bc3be3;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #f6f7fa, stop: 1 #dadbde);\n     min-width: 60px;\n }\n\n QPushButton:pressed {\n     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #dadbde, stop: 1 #f6f7fa);\n }\n\n QPushButton:flat {\n     border: none; /* для плоской кнопки границы нет */\n }\n\n QPushButton:default {\n     border-color: navy; /* делаем кнопку по умолчанию выпуклой */\n }");
     lay_math->insertWidget(0,btn);
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("031C00"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("031B01"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("064A01FF7F46"));
+        socket->write(*datagram);
+        delayms();
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("064A02FF7F46"));
+        socket->write(*datagram);
+        delayms();
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("064A03FF7F46"));
+        socket->write(*datagram);
+        delayms();
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("064A04FF7F46"));
+        socket->write(*datagram);
+    }
 }
 

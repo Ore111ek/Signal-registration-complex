@@ -127,6 +127,12 @@ private slots:
 
     void on_btn_add_math_clicked();
 
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_3_clicked();
+
+    void on_pushButton_4_clicked();
+
 public slots:
     void ping_device(QString ip_str);
     void handleChSettings(int channel, int range, bool resist, int offset, int filter);
