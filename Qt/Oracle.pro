@@ -14,6 +14,7 @@ SOURCES += \
     connectionform.cpp \
     main.cpp \
     mainwindow.cpp \
+    mathform.cpp \
     qcustomplot.cpp \
     settingsform.cpp
 
@@ -24,6 +25,7 @@ HEADERS += \
     chminiform.h \
     connectionform.h \
     mainwindow.h \
+    mathform.h \
     qcustomplot.h \
     qtcsv_global.h \
     settingsform.h \
@@ -35,6 +37,7 @@ FORMS += \
     chminiform.ui \
     connectionform.ui \
     mainwindow.ui \
+    mathform.ui \
     settingsform.ui
 
 # Default rules for deployment.

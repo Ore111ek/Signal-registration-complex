@@ -12,7 +12,7 @@ class ChMiniForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ChMiniForm(int ch_number,QWidget *parent = nullptr);
+    explicit ChMiniForm(int ch_number, QWidget *parent = nullptr);
     ~ChMiniForm();
 
 private slots:

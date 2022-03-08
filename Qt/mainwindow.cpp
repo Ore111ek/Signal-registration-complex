@@ -99,14 +99,15 @@ MainWindow::MainWindow(QWidget *parent)
         connect(this, SIGNAL (save_newChSettings(int,int,bool,int,int)), chmini[i], SLOT (update_settings(int,int,bool,int,int)));
     }
 
-    lay_math = new QVBoxLayout();
-    QPushButton *btn_addMath = new QPushButton("Добавить измерение");
-    btn_addMath->setMinimumHeight(60);
-    btn_addMath->setStyleSheet("QPushButton {\n border: 1px solid #8f8f91;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n stop: 0 #f6f7fa, stop: 1 #dadbde);\n min-width: 60px;\n }\n\nQPushButton:hover {\n border: 1px solid #bc3be3;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #f6f7fa, stop: 1 #dadbde);\n     min-width: 60px;\n }\n\n QPushButton:pressed {\n     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #dadbde, stop: 1 #f6f7fa);\n }\n\n QPushButton:flat {\n     border: none; /* для плоской кнопки границы нет */\n }\n\n QPushButton:default {\n     border-color: navy; /* делаем кнопку по умолчанию выпуклой */\n }");
-    lay_math->addSpacerItem(new QSpacerItem(40,40,QSizePolicy::Minimum, QSizePolicy::Expanding));
-    lay_math->addWidget(btn_addMath);
-    ui->groupBox_math->setLayout(lay_math);
-    connect(btn_addMath, SIGNAL (clicked()), this, SLOT (on_btn_add_math_clicked()));
+    //lay_math = new QVBoxLayout();
+    //QPushButton *btn_addMath = new QPushButton("Добавить измерение");
+    //btn_addMath->setMinimumHeight(30);
+    //btn_addMath->setStyleSheet("QPushButton {\n border: 1px solid #8f8f91;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n stop: 0 #f6f7fa, stop: 1 #dadbde);\n min-width: 60px;\n }\n\nQPushButton:hover {\n border: 1px solid #bc3be3;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #f6f7fa, stop: 1 #dadbde);\n     min-width: 60px;\n }\n\n QPushButton:pressed {\n     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #dadbde, stop: 1 #f6f7fa);\n }\n\n QPushButton:flat {\n     border: none; /* для плоской кнопки границы нет */\n }\n\n QPushButton:default {\n     border-color: navy; /* делаем кнопку по умолчанию выпуклой */\n }");
+    //ui->scrollAreaWidgetContents->layout()->addWidget(btn_addMath);
+    //lay_math->addSpacerItem(new QSpacerItem(40,40,QSizePolicy::Minimum, QSizePolicy::Expanding));
+    //lay_math->addWidget(btn_addMath);
+    //ui->scrollArea_math->setLayout(lay_math);
+    //connect(btn_addMath, SIGNAL (clicked()), this, SLOT (on_btn_add_math_clicked()));
 
 
     SettingForm = new SettingsForm(nullptr, chan);
@@ -186,6 +187,11 @@ MainWindow::MainWindow(QWidget *parent)
         chansCSV[i].append("Filter");
         chansCSV[i].append("");
     }
+    /*
+    for(int i = 0; i < MAX_MEASUREMENTS; i++){
+        mathForms[i] = new MathForm(i+1);
+        ui->scrollAreaWidgetContents->layout()->addWidget(mathForms[i]);
+    }*/
 
 }
 // Обработка входящих пакетов
@@ -538,25 +544,25 @@ void MainWindow::on_btn_graph_theme_clicked()
 
 void MainWindow::on_btn_save_graph_pdf_clicked()
 {
-    ui->customPlot->savePdf(QFileDialog::getSaveFileName(this,"Сохранить график", "C:/Users", "PDF files (*.pdf);"));
+    ui->customPlot->savePdf(QFileDialog::getSaveFileName(this,"Сохранить график", QDir::currentPath() + "/images_graphs", "PDF files (*.pdf);"));
 }
 
 
 void MainWindow::on_btn_save_graph_png_clicked()
 {
-    ui->customPlot->savePng(QFileDialog::getSaveFileName(this,"Сохранить график", "C:/Users", "PNG files (*.png);"), 0, 0, 1, 100);
+    ui->customPlot->savePng(QFileDialog::getSaveFileName(this,"Сохранить график", QDir::currentPath() + "/images_graphs", "PNG files (*.png);"), 0, 0, 1, 100);
 }
 
 
 void MainWindow::on_btn_save_graph_jpg_clicked()
 {
-    ui->customPlot->saveJpg(QFileDialog::getSaveFileName(this,"Сохранить график", "C:/Users", "JPEG files (*.jpg);"), 0, 0, 1, 100);
+    ui->customPlot->saveJpg(QFileDialog::getSaveFileName(this,"Сохранить график", QDir::currentPath() + "/images_graphs", "JPEG files (*.jpg);"), 0, 0, 1, 100);
 }
 
 
 void MainWindow::on_btn_save_graph_bmp_clicked()
 {
-    ui->customPlot->saveBmp(QFileDialog::getSaveFileName(this,"Сохранить график", "C:/Users", "BMP files (*.bmp);"), 0, 0, 1);
+    ui->customPlot->saveBmp(QFileDialog::getSaveFileName(this,"Сохранить график", QDir::currentPath() + "/images_graphs", "BMP files (*.bmp);"), 0, 0, 1);
 }
 
 
@@ -926,16 +932,6 @@ void MainWindow::on_btn_start_reg_8_clicked()
 
 }
 
-
-void MainWindow::on_btn_add_math_clicked()
-{
-    QPushButton *btn = new QPushButton("Измерение 1");
-    btn->setMinimumHeight(60);
-    btn->setStyleSheet("QPushButton {\n border: 1px solid #8f8f91;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n stop: 0 #f6f7fa, stop: 1 #dadbde);\n min-width: 60px;\n }\n\nQPushButton:hover {\n border: 1px solid #bc3be3;\n border-radius: 6px;\n background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #f6f7fa, stop: 1 #dadbde);\n     min-width: 60px;\n }\n\n QPushButton:pressed {\n     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n                                       stop: 0 #dadbde, stop: 1 #f6f7fa);\n }\n\n QPushButton:flat {\n     border: none; /* для плоской кнопки границы нет */\n }\n\n QPushButton:default {\n     border-color: navy; /* делаем кнопку по умолчанию выпуклой */\n }");
-    lay_math->insertWidget(0,btn);
-}
-
-
 void MainWindow::on_pushButton_2_clicked()
 {
     if(ConnectionSet){
@@ -981,7 +977,7 @@ void MainWindow::WriteToCSV(const QList<QStringList>& points)
 {
     // Open csv-file
 
-    QFile file(QFileDialog::getSaveFileName(this,"Сохранить график", "C:/Users", "CSV files (*.csv);"));
+    QFile file(QFileDialog::getSaveFileName(this,"Сохранить график", QDir::currentPath() + "/CSV_graphs", "CSV files (*.csv);"));
    // QFile file("graph.csv");
     file.open(QIODevice::WriteOnly | QIODevice::Text);
 
@@ -1065,5 +1061,30 @@ void MainWindow::on_btn_load_graph_csv_default_clicked()
 {
     QString csv_path = QFileDialog::getOpenFileName(this, "Открыть график", QDir::currentPath() + "/CSV_graphs", "CSV files (*.csv);");
     if(csv_path != nullptr) load_graph_from_csv(ReadCSV(csv_path));
+}
+
+void MainWindow::on_btn_add_math_clicked()
+{
+    int last_id = mathForms.count();
+    mathForms.append(new MathForm(last_id+1));
+    ui->scrollAreaWidgetContents->layout()->addWidget(mathForms.at(last_id));
+    mathForms.at(last_id)->show();
+    connect(mathForms.at(last_id), SIGNAL (close_clicked()), this, SLOT (on_btn_math_close_clicked()));
+
+    QString m_number = last_id>8 ? QString::number(last_id+1):"0" + QString::number(last_id+1);
+    mathForms.at(last_id)->setProperty("objectName","Measur" + m_number);
+}
+
+void MainWindow::on_btn_math_close_clicked()
+{
+    int n = (sender()->property("objectName").toString()[6].unicode()-48)*10;
+    n = n + sender()->property("objectName").toString()[7].unicode()-48;
+    delete mathForms.at(n-1);
+    mathForms.removeAt(n-1);
+    for(int i = n-1; i < mathForms.count(); i++){
+        QString m_number = i>8 ? QString::number(i+1):"0" + QString::number(i+1);
+        mathForms.at(i)->setProperty("objectName","Measur" + m_number);
+        mathForms.at(i)->change_number(i+1);
+    }
 }
 

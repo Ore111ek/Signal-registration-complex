@@ -21,10 +21,10 @@
 #include "settingsform.h"
 #include "chminiform.h"
 #include "chanform.h"
+#include "mathform.h"
 #include "DeviceConstants.h"
 
 #define NUM_OF_COLORS 13
-#define MAX_MEASUREMENTS 4
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -60,6 +60,7 @@ private:
     QPushButton *button[12];
     QWidget *chmini[NUM_OF_CHANNELS];
     ChanForm *chan[NUM_OF_CHANNELS];
+    QVector <MathForm *> mathForms;
     QPushButton *chbutton[12];
     QVBoxLayout *lay_math;
     QUdpSocket *socket, *getSocket;
@@ -97,6 +98,7 @@ private slots:
     void on_btn_conForm_clicked();
     void on_mini_ch_close_clicked();
     void on_btn_ch_clicked();
+    void on_btn_math_close_clicked();
 
     void on_btn_save_graph_pdf_clicked();
     void on_btn_save_graph_png_clicked();
