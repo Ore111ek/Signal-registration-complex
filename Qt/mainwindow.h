@@ -11,6 +11,12 @@
 #include <QKeyEvent>
 #include <QMoveEvent>
 #include <QUdpSocket>
+
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <QFile>
+#include <QTextStream>
 #include "connectionform.h"
 #include "settingsform.h"
 #include "chminiform.h"
@@ -52,8 +58,8 @@ private:
     SettingsForm *SettingForm;
     QWidget *ChSettingsForm;
     QPushButton *button[12];
-    QWidget *chmini[8];
-    ChanForm *chan[8];
+    QWidget *chmini[NUM_OF_CHANNELS];
+    ChanForm *chan[NUM_OF_CHANNELS];
     QPushButton *chbutton[12];
     QVBoxLayout *lay_math;
     QUdpSocket *socket, *getSocket;
@@ -65,6 +71,7 @@ private:
     bool wrongCommand;  // Если запрос был повторён и ответ всё ещё 03 xx EE, то отправляемая команда не корректна
     int delayTime = 100; // Задержка между отправкой двух последовательных команд
 
+    QStringList chansCSV[NUM_OF_CHANNELS];
 
     //Временно?
     int cur_fpga = 0;
@@ -90,11 +97,17 @@ private slots:
     void on_btn_conForm_clicked();
     void on_mini_ch_close_clicked();
     void on_btn_ch_clicked();
-    void on_btn_graph_theme_clicked();
+
     void on_btn_save_graph_pdf_clicked();
     void on_btn_save_graph_png_clicked();
     void on_btn_save_graph_jpg_clicked();
     void on_btn_save_graph_bmp_clicked();
+    void on_btn_save_graph_csv_clicked();
+    void on_btn_load_graph_csv_choice_clicked();
+    void on_btn_load_graph_csv_default_clicked();
+    void WriteToCSV(const QList<QStringList>& points);
+    QList<QStringList> ReadCSV();
+
     void on_btn_graph_zone_clicked();
     void on_btn_graph_zoominX_clicked();
     void on_btn_graph_zoomoutX_clicked();
@@ -102,6 +115,8 @@ private slots:
     void on_btn_graph_zoomoutY_clicked();
     void on_btn_graph_zoomin_clicked();
     void on_btn_graph_zoomout_clicked();
+    void on_btn_graph_theme_clicked();
+
     void readyReadUDP();
     void on_btn_start_reg_clicked();
     void on_tabWidget_currentChanged(int index);
@@ -132,6 +147,8 @@ private slots:
     void on_pushButton_3_clicked();
 
     void on_pushButton_4_clicked();
+
+
 
 public slots:
     void ping_device(QString ip_str);

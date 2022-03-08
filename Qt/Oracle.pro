@@ -19,12 +19,16 @@ SOURCES += \
 
 HEADERS += \
     DeviceConstants.h \
+    abstractdata.h \
     chanform.h \
     chminiform.h \
     connectionform.h \
     mainwindow.h \
     qcustomplot.h \
-    settingsform.h
+    qtcsv_global.h \
+    settingsform.h \
+    variantdata.h \
+    writer.h
 
 FORMS += \
     chanform.ui \

@@ -42,7 +42,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -683,7 +683,7 @@ TLoad</string>
             <number>3</number>
            </property>
            <item>
-            <widget class="QPushButton" name="btn_save_graph_bmp_2">
+            <widget class="QPushButton" name="btn_load_graph_csv_default">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -709,7 +709,7 @@ TLoad</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="btn_save_graph_csv_2">
+            <widget class="QPushButton" name="btn_load_graph_csv_choice">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                <horstretch>0</horstretch>

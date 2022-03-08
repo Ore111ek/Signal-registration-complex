@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <iostream>
 
 QColor graph_palette[NUM_OF_COLORS] = {
 // 1-4 channels
@@ -172,6 +173,19 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ConnectForm, SIGNAL (ping(QString)), this, SLOT (ping_device(QString)));
     connect(this, SIGNAL (ping_response(bool)), ConnectForm, SLOT (handle_response(bool)));
 
+    // CSV сохранение настроек каналов
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        chansCSV[i].append("Channel Number");
+        chansCSV[i].append(QString::number(i+1));
+        chansCSV[i].append("Range");
+        chansCSV[i].append("");
+        chansCSV[i].append("Input Resistance");
+        chansCSV[i].append("");
+        chansCSV[i].append("DAC code");
+        chansCSV[i].append("");
+        chansCSV[i].append("Filter");
+        chansCSV[i].append("");
+    }
 
 }
 // Обработка входящих пакетов
@@ -761,6 +775,11 @@ void MainWindow::handleChSettings(int channel, int range, bool resist, int offse
             wrongCommand = false;
         }else{ // Команды успешно выполнены
             emit save_newChSettings(channel, range, resist, offset, filter);
+
+            chansCSV[channel-1].replace(3,QString::number(range));
+            chansCSV[channel-1].replace(5,QString::number(resist));
+            chansCSV[channel-1].replace(7,QString::number(offset));
+            chansCSV[channel-1].replace(9,QString::number(filter));
         }
     } else {
         QMessageBox::critical(this, "Ошибка соединения","Соединение с регистратором    \n        не установлено\n");
@@ -956,5 +975,93 @@ void MainWindow::on_pushButton_4_clicked()
         datagram->append(QByteArray::fromHex("064A04FF7F46"));
         socket->write(*datagram);
     }
+}
+
+void MainWindow::WriteToCSV(const QList<QStringList>& points)
+{
+    // Open csv-file
+
+    QFile file(QFileDialog::getSaveFileName(this,"Сохранить график", "C:/Users", "CSV files (*.csv);"));
+   // QFile file("graph.csv");
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+
+    // Write data to file
+    QTextStream stream(&file);
+    QString separator(",");
+    for (int i = 0; i < points.size(); ++i)
+    {
+        stream << points.at(i).join(separator) << "\n";
+    }
+
+    stream.flush();
+    file.close();
+}
+
+QList<QStringList> MainWindow::ReadCSV()
+{
+    // Open csv-file
+    //QFile file("graph.csv");
+    QFile file(QFileDialog::getOpenFileName(this, "Открыть график", "C:/Users", "CSV files (*.csv);"));
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    // Read data from file
+    QTextStream stream(&file);
+    QList<QStringList> data;
+    QString separator(",");
+    while (stream.atEnd() == false)
+    {
+        QString line = stream.readLine();
+        data << line.split(separator);
+    }
+
+    file.close();
+    return data;
+}
+
+void MainWindow::on_btn_save_graph_csv_clicked()
+{
+    QStringList row1 = {"Registrator","Name","Num of channels",QString::number(NUM_OF_CHANNELS)};
+    QList<QStringList> points;
+    points.append(row1);
+
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        points.append(chansCSV[i]);
+    }
+
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
+        QStringList record;
+        record.append(QString::number(ui->customPlot->graph(i)->data()->size()));
+        for(int j = 0; j < ui->customPlot->graph(i)->data()->size(); j++){
+            record.append(QString::number(ui->customPlot->graph(i)->data()->at(j)->mainKey()));
+            record.append(QString::number(ui->customPlot->graph(i)->data()->at(j)->mainValue()));
+        }
+        points.append(record);
+    }
+
+
+    WriteToCSV(points);
+}
+
+void MainWindow::on_btn_load_graph_csv_choice_clicked()
+{
+    QList<QStringList> points = ReadCSV();
+    int num_of_chan = points[0][3].toInt();
+    for(int i = 0; i < num_of_chan; i++){
+        emit save_newChSettings(i+1,points[i+1][3].toInt(),points[i+1][5].toInt(),points[i+1][7].toInt(),points[i+1][9].toInt());
+        ui->customPlot->graph(i)->data()->clear();
+        for(int j = 0; j < points[1+num_of_chan+i][0].toInt(); j++){
+            ui->customPlot->graph(i)->addData(points[1+num_of_chan+i][2*j+1].toDouble(), points[1+num_of_chan+i][2*(j+1)].toDouble());
+        }
+    }
+    ui->customPlot->replot();
+}
+
+
+void MainWindow::on_btn_load_graph_csv_default_clicked()
+{
+    for(int i = 0; i < 8; i++){
+        ui->customPlot->graph(i)->data()->clear();
+    }
+    ui->customPlot->replot();
 }
 
