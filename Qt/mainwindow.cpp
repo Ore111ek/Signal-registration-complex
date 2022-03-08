@@ -997,11 +997,11 @@ void MainWindow::WriteToCSV(const QList<QStringList>& points)
     file.close();
 }
 
-QList<QStringList> MainWindow::ReadCSV()
+QList<QStringList> MainWindow::ReadCSV(QString filename)
 {
     // Open csv-file
     //QFile file("graph.csv");
-    QFile file(QFileDialog::getOpenFileName(this, "Открыть график", "C:/Users", "CSV files (*.csv);"));
+    QFile file(filename);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
 
     // Read data from file
@@ -1042,9 +1042,7 @@ void MainWindow::on_btn_save_graph_csv_clicked()
     WriteToCSV(points);
 }
 
-void MainWindow::on_btn_load_graph_csv_choice_clicked()
-{
-    QList<QStringList> points = ReadCSV();
+void MainWindow::load_graph_from_csv(QList<QStringList> points){
     int num_of_chan = points[0][3].toInt();
     for(int i = 0; i < num_of_chan; i++){
         emit save_newChSettings(i+1,points[i+1][3].toInt(),points[i+1][5].toInt(),points[i+1][7].toInt(),points[i+1][9].toInt());
@@ -1056,12 +1054,16 @@ void MainWindow::on_btn_load_graph_csv_choice_clicked()
     ui->customPlot->replot();
 }
 
+void MainWindow::on_btn_load_graph_csv_choice_clicked()
+{
+    QString csv_path = QFileDialog::getOpenFileName(this, "Открыть график", "C:/Users", "CSV files (*.csv);");
+    if(csv_path != "") load_graph_from_csv(ReadCSV(csv_path));
+}
+
 
 void MainWindow::on_btn_load_graph_csv_default_clicked()
 {
-    for(int i = 0; i < 8; i++){
-        ui->customPlot->graph(i)->data()->clear();
-    }
-    ui->customPlot->replot();
+    QString csv_path = QFileDialog::getOpenFileName(this, "Открыть график", QDir::currentPath() + "/CSV_graphs", "CSV files (*.csv);");
+    if(csv_path != nullptr) load_graph_from_csv(ReadCSV(csv_path));
 }
 

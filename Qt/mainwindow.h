@@ -106,7 +106,8 @@ private slots:
     void on_btn_load_graph_csv_choice_clicked();
     void on_btn_load_graph_csv_default_clicked();
     void WriteToCSV(const QList<QStringList>& points);
-    QList<QStringList> ReadCSV();
+    QList<QStringList> ReadCSV(QString filename);
+    void load_graph_from_csv(QList<QStringList> points);
 
     void on_btn_graph_zone_clicked();
     void on_btn_graph_zoominX_clicked();
