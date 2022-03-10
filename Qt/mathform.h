@@ -23,8 +23,16 @@ private:
 private slots:
     void on_btn_close_clicked();
 
+public slots:
+    void on_math_request();
+    void on_math_send_data(QVector <QVector <double>> graphs);
+
 signals:
     void close_clicked();
+    void math_update_settings();
+    void math_data_request(QVector <int>);
+    void math_result_graph(QVector <QVector <double>> graphs);
+    void math_result_number(QVector <double> numbers);
 };
 
 #endif // MATHFORM_H

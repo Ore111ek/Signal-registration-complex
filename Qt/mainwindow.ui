@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1341</width>
+    <width>1400</width>
     <height>761</height>
    </rect>
   </property>
@@ -39,7 +39,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>1</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -402,7 +402,7 @@
           <item>
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Количество читаемых пакетов</string>
+             <string>Кол-во читаемых пакетов</string>
             </property>
            </widget>
           </item>
@@ -412,7 +412,7 @@
              <number>1</number>
             </property>
             <property name="maximum">
-             <number>400</number>
+             <number>8192</number>
             </property>
             <property name="value">
              <number>4</number>
@@ -420,6 +420,14 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_5">
+          <property name="text">
+           <string>Сброс
+ПЛИС</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="btn_start_reg_6">
@@ -1457,7 +1465,7 @@ QPushButton:hover {
              <x>0</x>
              <y>0</y>
              <width>248</width>
-             <height>391</height>
+             <height>344</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1488,6 +1496,49 @@ QPushButton:hover {
             </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_call_math">
+          <property name="minimumSize">
+           <size>
+            <width>62</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+     border: 1px solid #8f8f91;
+     border-radius: 6px;
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #f6f7fa, stop: 1 #dadbde);
+     min-width: 60px;
+ }
+
+QPushButton:hover {
+     border: 1px solid #bc3be3;
+     border-radius: 6px;
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #f6f7fa, stop: 1 #dadbde);
+     min-width: 60px;
+ }
+
+ QPushButton:pressed {
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #dadbde, stop: 1 #f6f7fa);
+ }
+
+ QPushButton:flat {
+     border: none; /* для плоской кнопки границы нет */
+ }
+
+ QPushButton:default {
+     border-color: navy; /* делаем кнопку по умолчанию выпуклой */
+ }</string>
+          </property>
+          <property name="text">
+           <string>Обновить измерения</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -1926,7 +1977,7 @@ QPushButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1341</width>
+     <width>1400</width>
      <height>25</height>
     </rect>
    </property>

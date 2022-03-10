@@ -212,8 +212,8 @@ void MainWindow::readyReadUDP()
         ui->spinBox_2->setValue((unsigned char)buffer.at(0));
     } else if(datagram->at(1)==0x70){
         for(int w = 0; w < 80; w++){
-                ui->customPlot->graph(2*cur_fpga)->addData(cur_x[2*cur_fpga], (buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
-                ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+3)&0x0F)*256 + (unsigned char)buffer.at(4*w+2));
+                ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
+                ui->customPlot->graph(2*cur_fpga)->addData(cur_x[2*cur_fpga], (buffer.at(4*w+3)&0x0F)*256 + (unsigned char)buffer.at(4*w+2));
                 cur_x[2*cur_fpga]+=1;
                 cur_x[2*cur_fpga+1]+=1;
         }
@@ -234,6 +234,9 @@ void MainWindow::readyReadUDP()
         switch((unsigned char)buffer.at(1)){ // Аккуратнее, если код команды больше 127, то писать в обратном коде
             case 0x9A://Опрос квитанции FIFO??
                 ui->spinBox_2->setValue((unsigned char)buffer.at(2));
+            break;
+            case 0x93://Подтверждение сброса ПЛИС
+
             break;
             case 0x70://Чтение пакета FIFO?
 /*
@@ -630,6 +633,9 @@ void MainWindow::on_btn_graph_zoomout_clicked()
 void MainWindow::on_btn_start_reg_clicked()
 {
     if(ConnectionSet){
+        for(int i = 0; i < NUM_OF_CHANNELS; i++){
+            cur_x[i] = 0;
+        }
         for (int j = 0; j < NUM_OF_COLORS; j++){
             ui->customPlot->graph(j)->data()->clear();
         }
@@ -800,6 +806,42 @@ void MainWindow::hide_subwidgets()
     }
 }
 
+void MainWindow::on_math_update_settings()
+{
+    emit math_request();
+}
+
+void MainWindow::on_math_data_request(QVector<int> channels)
+{
+    QVector <QVector <double>> data;
+    for(int i = 0; i < channels.count(); i++){
+        QVector <double> graph;
+        int n = channels.at(i);
+        for(int j = 0; j < ui->customPlot->graph(n)->data()->size(); j++){
+            graph.append(ui->customPlot->graph(n)->data()->at(j)->mainValue());
+        }
+        data.append(graph);
+    }
+    emit math_send_data(data);
+}
+
+void MainWindow::on_math_result_graph(QVector<QVector<double>> graphs)
+{
+    for(int i = 0; i < graphs.count(); i++){
+        ui->customPlot->graph(8+i)->data()->clear();
+        for(int j = 0; j < graphs.at(i).count(); j++){
+            ui->customPlot->graph(8+i)->addData(ui->customPlot->graph(0)->data()->at(j)->mainKey(),graphs.at(i).at(j));
+        }
+        ui->customPlot->graph(8+i)->setVisible(true);
+    }
+    ui->customPlot->replot();
+}
+
+void MainWindow::on_math_result_number(QVector<double> numbers)
+{
+
+}
+
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if(ui->tabWidget->tabText(index)=="Скрыть меню"){
@@ -877,7 +919,6 @@ void MainWindow::on_btn_start_reg_4_clicked()
 
 void MainWindow::on_btn_start_reg_5_clicked()
 {
-
     if(ConnectionSet){
         for(cur_fpga = 0; cur_fpga < 4; cur_fpga++){
             datagram->clear();
@@ -888,6 +929,9 @@ void MainWindow::on_btn_start_reg_5_clicked()
                 delayms();
             }
         }
+        ui->customPlot->xAxis->setRange(0,cur_x[0]);
+        ui->customPlot->yAxis->setRange(0,4100);
+        ui->customPlot->replot();
     }
 }
 
@@ -1033,8 +1077,6 @@ void MainWindow::on_btn_save_graph_csv_clicked()
         }
         points.append(record);
     }
-
-
     WriteToCSV(points);
 }
 
@@ -1073,6 +1115,13 @@ void MainWindow::on_btn_add_math_clicked()
 
     QString m_number = last_id>8 ? QString::number(last_id+1):"0" + QString::number(last_id+1);
     mathForms.at(last_id)->setProperty("objectName","Measur" + m_number);
+
+    connect(this, SIGNAL (math_request()), mathForms.at(last_id), SLOT (on_math_request()));
+    connect(mathForms.at(last_id), SIGNAL (math_data_request(QVector<int>)), this, SLOT (on_math_data_request(QVector<int>)));
+    connect(this, SIGNAL (math_send_data(QVector<QVector<double>>)), mathForms.at(last_id), SLOT (on_math_send_data(QVector<QVector<double>>)));
+    connect(mathForms.at(last_id), SIGNAL (math_result_graph(QVector<QVector<double>>)), this, SLOT (on_math_result_graph(QVector<QVector<double>>)));
+    connect(mathForms.at(last_id), SIGNAL (math_result_number(QVector<double>)), this, SLOT (on_math_result_number(QVector<double>)));
+    connect(mathForms.at(last_id), SIGNAL (math_update_settings()), this, SLOT (on_math_update_settings()));
 }
 
 void MainWindow::on_btn_math_close_clicked()
@@ -1086,5 +1135,21 @@ void MainWindow::on_btn_math_close_clicked()
         mathForms.at(i)->setProperty("objectName","Measur" + m_number);
         mathForms.at(i)->change_number(i+1);
     }
+}
+
+
+void MainWindow::on_pushButton_5_clicked()
+{
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0293"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_call_math_clicked()
+{
+    emit math_request();
 }
 

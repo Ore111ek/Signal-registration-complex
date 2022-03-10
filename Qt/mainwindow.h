@@ -76,7 +76,7 @@ private:
 
     //Временно?
     int cur_fpga = 0;
-    int cur_x[8] = {0,0,0,0,0,0,0,0};
+    int cur_x[NUM_OF_CHANNELS];
     int b_channel=1;
     //
 
@@ -153,13 +153,24 @@ private slots:
 
 
 
+    void on_pushButton_5_clicked();
+
+    void on_btn_call_math_clicked();
+
 public slots:
     void ping_device(QString ip_str);
     void handleChSettings(int channel, int range, bool resist, int offset, int filter);
     void hide_subwidgets();
 
+    void on_math_update_settings();
+    void on_math_data_request(QVector<int> channels);
+    void on_math_result_graph(QVector<QVector<double>> graphs);
+    void on_math_result_number(QVector<double> numbers);
+
 signals:
     void ping_response(bool state);
     void save_newChSettings(int channel,int range,bool resist,int offset,int filter);
+    void math_request();
+    void math_send_data(QVector<QVector<double>> graphs);
 };
 #endif // MAINWINDOW_H
