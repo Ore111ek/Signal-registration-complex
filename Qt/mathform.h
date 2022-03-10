@@ -2,6 +2,10 @@
 #define MATHFORM_H
 
 #include <QWidget>
+#include "DeviceConstants.h"
+#include <QComboBox>
+#include <QLabel>
+#include <QHBoxLayout>
 
 namespace Ui {
 class MathForm;
@@ -19,9 +23,14 @@ public:
 private:
     Ui::MathForm *ui;
     int number;
+    QVector <QComboBox *> combo;
+    QVector <QLabel *> label;
+    QVector <QHBoxLayout *> lay;
 
 private slots:
     void on_btn_close_clicked();
+
+    void on_comboBox_type_currentIndexChanged(int index);
 
 public slots:
     void on_math_request();
@@ -30,9 +39,9 @@ public slots:
 signals:
     void close_clicked();
     void math_update_settings();
-    void math_data_request(QVector <int>);
-    void math_result_graph(QVector <QVector <double>> graphs);
-    void math_result_number(QVector <double> numbers);
+    void math_data_request(int num_math, QVector <int> channels);
+    void math_result_graph(int num_math, QVector <QVector <double>> graphs);
+    void math_result_number(int num_math, QVector <double> numbers);
 };
 
 #endif // MATHFORM_H

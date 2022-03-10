@@ -808,10 +808,14 @@ void MainWindow::hide_subwidgets()
 
 void MainWindow::on_math_update_settings()
 {
+    for(int i = 8; i < NUM_OF_COLORS; i++){
+        ui->customPlot->graph(i)->setVisible(false);
+    }
+    ui->customPlot->replot();
     emit math_request();
 }
 
-void MainWindow::on_math_data_request(QVector<int> channels)
+void MainWindow::on_math_data_request(int math_num, QVector<int> channels)
 {
     QVector <QVector <double>> data;
     for(int i = 0; i < channels.count(); i++){
@@ -822,22 +826,23 @@ void MainWindow::on_math_data_request(QVector<int> channels)
         }
         data.append(graph);
     }
-    emit math_send_data(data);
+    //emit math_send_data(data);
+    mathForms.at(math_num-1)->on_math_send_data(data);
 }
 
-void MainWindow::on_math_result_graph(QVector<QVector<double>> graphs)
+void MainWindow::on_math_result_graph(int math_num, QVector<QVector<double>> graphs)
 {
-    for(int i = 0; i < graphs.count(); i++){
-        ui->customPlot->graph(8+i)->data()->clear();
-        for(int j = 0; j < graphs.at(i).count(); j++){
-            ui->customPlot->graph(8+i)->addData(ui->customPlot->graph(0)->data()->at(j)->mainKey(),graphs.at(i).at(j));
+    //Сделать несколько графиков для одного измерения
+        ui->customPlot->graph(7+math_num)->data()->clear();
+        for(int j = 0; j < graphs.at(0).count(); j++){
+            ui->customPlot->graph(7+math_num)->addData(ui->customPlot->graph(0)->data()->at(j)->mainKey(),graphs.at(0).at(j));
         }
-        ui->customPlot->graph(8+i)->setVisible(true);
-    }
+        ui->customPlot->graph(7+math_num)->setVisible(true);
+
     ui->customPlot->replot();
 }
 
-void MainWindow::on_math_result_number(QVector<double> numbers)
+void MainWindow::on_math_result_number(int math_num, QVector<double> numbers)
 {
 
 }
@@ -1117,11 +1122,11 @@ void MainWindow::on_btn_add_math_clicked()
     mathForms.at(last_id)->setProperty("objectName","Measur" + m_number);
 
     connect(this, SIGNAL (math_request()), mathForms.at(last_id), SLOT (on_math_request()));
-    connect(mathForms.at(last_id), SIGNAL (math_data_request(QVector<int>)), this, SLOT (on_math_data_request(QVector<int>)));
-    connect(this, SIGNAL (math_send_data(QVector<QVector<double>>)), mathForms.at(last_id), SLOT (on_math_send_data(QVector<QVector<double>>)));
-    connect(mathForms.at(last_id), SIGNAL (math_result_graph(QVector<QVector<double>>)), this, SLOT (on_math_result_graph(QVector<QVector<double>>)));
-    connect(mathForms.at(last_id), SIGNAL (math_result_number(QVector<double>)), this, SLOT (on_math_result_number(QVector<double>)));
-    connect(mathForms.at(last_id), SIGNAL (math_update_settings()), this, SLOT (on_math_update_settings()));
+    connect(mathForms.at(last_id), SIGNAL (math_data_request(int, QVector<int>)), this, SLOT (on_math_data_request(int, QVector<int>)));
+    //connect(this, SIGNAL (math_send_data(QVector<QVector<double>>)), mathForms.at(last_id), SLOT (on_math_send_data(QVector<QVector<double>>)));
+    connect(mathForms.at(last_id), SIGNAL (math_result_graph(int, QVector<QVector<double>>)), this, SLOT (on_math_result_graph(int, QVector<QVector<double>>)));
+    connect(mathForms.at(last_id), SIGNAL (math_result_number(int, QVector<double>)), this, SLOT (on_math_result_number(int, QVector<double>)));
+    connect(mathForms.at(last_id), SIGNAL (math_update_settings()), this, SLOT (on_btn_call_math_clicked()));
 }
 
 void MainWindow::on_btn_math_close_clicked()
@@ -1150,6 +1155,10 @@ void MainWindow::on_pushButton_5_clicked()
 
 void MainWindow::on_btn_call_math_clicked()
 {
+    for(int i = 8; i < NUM_OF_COLORS; i++){
+        ui->customPlot->graph(i)->setVisible(false);
+    }
+    ui->customPlot->replot();
     emit math_request();
 }
 

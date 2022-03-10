@@ -163,9 +163,9 @@ public slots:
     void hide_subwidgets();
 
     void on_math_update_settings();
-    void on_math_data_request(QVector<int> channels);
-    void on_math_result_graph(QVector<QVector<double>> graphs);
-    void on_math_result_number(QVector<double> numbers);
+    void on_math_data_request(int math_num, QVector<int> channels);
+    void on_math_result_graph(int math_num, QVector<QVector<double>> graphs);
+    void on_math_result_number(int math_num, QVector<double> numbers);
 
 signals:
     void ping_response(bool state);
