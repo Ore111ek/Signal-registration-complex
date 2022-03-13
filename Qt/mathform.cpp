@@ -65,21 +65,21 @@ void MathForm::on_math_send_data(QVector<QVector<double>> graphs)
     switch (ui->comboBox_type->currentIndex()){
         case 0:// Разность каналов
             for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append(graphs.at(0).at(i)-graphs.at(1).at(i));
+                one_graph.append(graphs.at(0).at(i)-graphs.at(1).at(i)+2048);
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
         break;
         case 1:// Сумма каналов
             for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append(graphs.at(0).at(i)+graphs.at(1).at(i));
+                one_graph.append(graphs.at(0).at(i)+graphs.at(1).at(i)-2048);
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
         break;
         case 2:// Умножить канал
             for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append(graphs.at(0).at(i)*combo.at(1)->currentText().toInt());
+                one_graph.append((graphs.at(0).at(i)-2048)*combo.at(1)->currentText().toInt()+2048);
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
@@ -98,10 +98,10 @@ void MathForm::on_comboBox_type_currentIndexChanged(int index)
 {
     delete ui->groupBox_settings->layout();
     for(int i = 0; i < combo.count(); i++){
-        delete combo.at(i);
+        delete combo[i];
     }
     for(int i = 0; i < label.count(); i++){
-        delete label.at(i);
+        delete label[i];
     }
     //for(int i = 0; i < lay.count(); i++){
       //  lay.at(i).;
@@ -121,61 +121,61 @@ void MathForm::on_comboBox_type_currentIndexChanged(int index)
             for(int i = 1; i <= NUM_OF_CHANNELS; i++){
                 //combo[0]->addItem(QString::number(i));
                 //combo[1]->addItem(QString::number(i));
-                combo.at(0)->addItem("К" + QString::number(i));
-                combo.at(1)->addItem("К" + QString::number(i));
+                combo[0]->addItem("К" + QString::number(i));
+                combo[1]->addItem("К" + QString::number(i));
             }
             label.append(new QLabel());
-            label.at(0)->setText("-");
-            label.at(0)->setAlignment(Qt::AlignHCenter);
-            label.at(0)->setFixedHeight(20);
+            label[0]->setText("-");
+            label[0]->setAlignment(Qt::AlignHCenter);
+            label[0]->setFixedHeight(20);
             //label[0] = new QLabel();
             //label1->setText("-");
             lay.append(new QHBoxLayout());
             //QHBoxLayout *lay = new QHBoxLayout();
-            lay.at(0)->addWidget(combo.at(0));
-            lay.at(0)->addWidget(label.at(0));
-            lay.at(0)->addWidget(combo.at(1));
+            lay[0]->addWidget(combo[0]);
+            lay[0]->addWidget(label[0]);
+            lay[0]->addWidget(combo[1]);
             //lay->addWidget(combo1);
             //lay->addWidget(label1);
             //lay->addWidget(combo2);
-            ui->groupBox_settings->setLayout(lay.at(0));
+            ui->groupBox_settings->setLayout(lay[0]);
             //ui->groupBox_settings->setLayout(lay);
         break;
         case 1:
             combo.append(new QComboBox());
             combo.append(new QComboBox());
             for(int i = 1; i <= NUM_OF_CHANNELS; i++){
-                combo.at(0)->addItem("К" + QString::number(i));
-                combo.at(1)->addItem("К" + QString::number(i));
+                combo[0]->addItem("К" + QString::number(i));
+                combo[1]->addItem("К" + QString::number(i));
             }
             label.append(new QLabel());
-            label.at(0)->setText("+");
-            label.at(0)->setAlignment(Qt::AlignHCenter);
-            label.at(0)->setFixedHeight(20);
+            label[0]->setText("+");
+            label[0]->setAlignment(Qt::AlignHCenter);
+            label[0]->setFixedHeight(20);
             lay.append(new QHBoxLayout());
-            lay.at(0)->addWidget(combo.at(0));
-            lay.at(0)->addWidget(label.at(0));
-            lay.at(0)->addWidget(combo.at(1));
-            ui->groupBox_settings->setLayout(lay.at(0));
+            lay[0]->addWidget(combo[0]);
+            lay[0]->addWidget(label[0]);
+            lay[0]->addWidget(combo[1]);
+            ui->groupBox_settings->setLayout(lay[0]);
         break;
         case 2:
             combo.append(new QComboBox());
             combo.append(new QComboBox());
             for(int i = 1; i <= NUM_OF_CHANNELS; i++){
-                combo.at(0)->addItem("К" + QString::number(i));
+                combo[0]->addItem("К" + QString::number(i));
             }
             for(int i = 1; i <= 10; i++){
-                combo.at(1)->addItem(QString::number(i));
+                combo[1]->addItem(QString::number(i));
             }
             label.append(new QLabel());
-            label.at(0)->setText("*");
-            label.at(0)->setAlignment(Qt::AlignHCenter);
-            label.at(0)->setFixedHeight(20);
+            label[0]->setText("*");
+            label[0]->setAlignment(Qt::AlignHCenter);
+            label[0]->setFixedHeight(20);
             lay.append(new QHBoxLayout());
-            lay.at(0)->addWidget(combo.at(0));
-            lay.at(0)->addWidget(label.at(0));
-            lay.at(0)->addWidget(combo.at(1));
-            ui->groupBox_settings->setLayout(lay.at(0));
+            lay[0]->addWidget(combo[0]);
+            lay[0]->addWidget(label[0]);
+            lay[0]->addWidget(combo[1]);
+            ui->groupBox_settings->setLayout(lay[0]);
         break;
         case 3:
         break;

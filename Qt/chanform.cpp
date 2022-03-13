@@ -46,7 +46,7 @@ void ChanForm::show_settings(QPoint bottom)
 void ChanForm::on_DAC_codeSpin_valueChanged(int arg1)
 {
     ui->DAC_slider->setSliderPosition(arg1);
-    ui->DAC_mvSpin->setValue(double(arg1-32768)/12.8);
+    ui->DAC_mvSpin->setValue(double(arg1-32768)/1.2362);
     emit settings_changed(ui->comboBox_range->currentIndex(),ui->radio_1MOm->isChecked(),ui->DAC_slider->value(),ui->comboBox_filter->currentIndex());
 }
 
@@ -54,7 +54,7 @@ void ChanForm::on_DAC_codeSpin_valueChanged(int arg1)
 void ChanForm::on_DAC_slider_sliderMoved(int position)
 {
     ui->DAC_codeSpin->setValue(position);
-    ui->DAC_mvSpin->setValue((position-32768)/12.8);
+    ui->DAC_mvSpin->setValue((position-32768)/1.2362);
     emit settings_changed(ui->comboBox_range->currentIndex(),ui->radio_1MOm->isChecked(),ui->DAC_slider->value(),ui->comboBox_filter->currentIndex());
 }
 
@@ -70,7 +70,7 @@ void ChanForm::on_btn_DAC_setZero_clicked()
 
 void ChanForm::on_DAC_mvSpin_valueChanged(double arg1)
 {
-    int code = arg1*12.8+32768;
+    int code = arg1*1.2362+32768;
     ui->DAC_slider->setSliderPosition(code);
     ui->DAC_codeSpin->setValue(code);
     emit settings_changed(ui->comboBox_range->currentIndex(),ui->radio_1MOm->isChecked(),ui->DAC_slider->value(),ui->comboBox_filter->currentIndex());

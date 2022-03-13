@@ -34,13 +34,30 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    for(int j = 0; j < NUM_OF_COLORS; j++){
+    label_logo = new QLabel(this);
+    QPixmap pixmap(":/img/images/logo.png");
+     label_logo->setPixmap(pixmap);
+     label_logo->setScaledContents(true);
+     label_logo->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
+     label_logo->setGeometry(660,0,123,26);
+     //label_logo->setVisible(true);
+
+    for(int j = 0; j < NUM_OF_CHANNELS; j++){
+        Graph gr;
+        gr.data.x.clear();
+        gr.data.y.clear();
+        for(double i = 0; i <= 100; i += 0.01){
+            gr.data.x.append(i);
+            gr.data.y.append(1500*sin(i + j) + 800*j+2048);
+        }
+        chGraphs.append(gr);
+        /*
         graph.ch[j].x.clear();
         graph.ch[j].y.clear();
-        for(double i = 0; i <= 100; i += 0.1){
+        for(double i = 0; i <= 100; i += 0.01){
             graph.ch[j].x.append(i);
-            graph.ch[j].y.append(sin(i + j) + j/2);
-        }
+            graph.ch[j].y.append(1500*sin(i + j) + 800*j+2048);
+        }*/
     }
 
     initialize_graph();
@@ -474,12 +491,23 @@ void MainWindow::initialize_graph(){
 
     ui->customPlot->xAxis->setRange(0,300);
     ui->customPlot->yAxis->setRange(0,4096);
-    for (int j = 0; j < NUM_OF_COLORS; j++){
+    for (int j = 0; j < NUM_OF_CHANNELS; j++){
         ui->customPlot->addGraph();
-        ui->customPlot->graph(j)->addData(graph.ch[j].x, graph.ch[j].y);
+        //ui->customPlot->graph(j)->addData(graph.ch[j].x, graph.ch[j].y);
+        ui->customPlot->graph(j)->addData(chGraphs.at(j).data.x, chGraphs.at(j).data.y);
         ui->customPlot->graph(j)->setPen(QPen(graph_palette[j], 1.2));
         ui->customPlot->graph(j)->setVisible(false); // Hide Graphs
     }
+
+    for (int j = 0; j < MAX_MEASUREMENTS; j++){
+        ui->customPlot->addGraph();
+        //ui->customPlot->graph(j)->addData(graph.ch[j].x, graph.ch[j].y);
+        //ui->customPlot->graph(j)->addData(chGraphs.at(j).data.x, chGraphs.at(j).data.y);
+        ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.2));
+        if(j/(NUM_OF_COLORS - NUM_OF_CHANNELS) >= 1) ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.5, Qt::DotLine));
+        ui->customPlot->graph(NUM_OF_CHANNELS+j)->setVisible(false); // Hide Graphs
+    }
+
     ui->customPlot->replot();
 
     //Было так

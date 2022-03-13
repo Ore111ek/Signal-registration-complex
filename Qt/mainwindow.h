@@ -25,22 +25,23 @@
 #include "DeviceConstants.h"
 
 #define NUM_OF_COLORS 13
+#define MAX_MEASUREMENTS 10
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class ChannelData{
+class GraphData{
 public:
-    QVector<double> x, y;
+    QVector<double> x, y; // в отсчётах и кодах АЦП
 };
 
 class Graph{
 public:
-    ChannelData ch[NUM_OF_COLORS];
-    double x0 = 0, xn, step;
-    int n;
-
+    GraphData data;
+    double offsetx = 0, offsety = 0;
+    double factorx = 1, factory = 1;
+    double stepx = 1, stepy = 1; // Единицы измерения Отсчёты/мкс/нс КодАЦП/В/мВ
 };
 
 class MainWindow : public QMainWindow
@@ -53,7 +54,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    Graph graph;
+    QVector<Graph> chGraphs, mathGraphs;
     ConnectionForm *ConnectForm;
     SettingsForm *SettingForm;
     QWidget *ChSettingsForm;
@@ -63,6 +64,7 @@ private:
     QVector <MathForm *> mathForms;
     QPushButton *chbutton[12];
     QVBoxLayout *lay_math;
+    QLabel *label_logo;
     QUdpSocket *socket, *getSocket;
     QHostAddress *destIP;
     QByteArray *datagram;
