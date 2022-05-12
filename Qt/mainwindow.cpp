@@ -172,11 +172,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     */
 
+    //Progress bar
+    //progressBar = new QProgressBar();
+    //progressDialog = new QProgressDialog("Чтение сигнала","Отмена",0,100);
+    //progressDialog->hide();
+
     // Network
     socket = new QUdpSocket(this);
     getSocket = new QUdpSocket(this);
     getSocket->bind(4000, QUdpSocket::ShareAddress); // Прослушиваем порт 4000
-    destIP = new QHostAddress("132.9.36.64");
+    //destIP = new QHostAddress("132.9.36.64");
+     destIP = new QHostAddress("192.168.0.1");
     socket->connectToHost(*destIP,2054,QIODevice::WriteOnly);
     datagram = new QByteArray();
     ConnectionSet = true;//false на самом деле
@@ -226,7 +232,7 @@ void MainWindow::readyReadUDP()
     qDebug() << "Message port: " << senderPort;
     qDebug() << "Message: " << buffer;
     if((unsigned char)datagram->at(1)==0x9A){
-        ui->spinBox_2->setValue((unsigned char)buffer.at(0));
+        //ui->spinBox_2->setValue((unsigned char)buffer.at(0)); опрос квитанции
     } else if(datagram->at(1)==0x70){
         for(int w = 0; w < 80; w++){
                 ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
@@ -250,7 +256,7 @@ void MainWindow::readyReadUDP()
     else {  // Пришёл ответ > 2 байт
         switch((unsigned char)buffer.at(1)){ // Аккуратнее, если код команды больше 127, то писать в обратном коде
             case 0x9A://Опрос квитанции FIFO??
-                ui->spinBox_2->setValue((unsigned char)buffer.at(2));
+                //ui->spinBox_2->setValue((unsigned char)buffer.at(2)); опрос квитанции
             break;
             case 0x93://Подтверждение сброса ПЛИС
 
@@ -345,6 +351,9 @@ void MainWindow::graph_setDark(){
     axisRectGradient.setColorAt(0, QColor(80, 80, 80));
     axisRectGradient.setColorAt(1, QColor(30, 30, 30));
     ui->customPlot->axisRect()->setBackground(axisRectGradient);
+    ui->customPlot->legend->setBrush(QColor(80, 80, 80));
+    ui->customPlot->legend->setBorderPen(QPen(Qt::white, 1));
+    ui->customPlot->legend->setTextColor(Qt::white);
 }
 
 void MainWindow::graph_setLight(){
@@ -378,6 +387,9 @@ void MainWindow::graph_setLight(){
     axisRectGradient.setColorAt(0.5, QColor(255, 255, 255));
     axisRectGradient.setColorAt(1, QColor(240, 240, 240));
     ui->customPlot->axisRect()->setBackground(axisRectGradient);
+    ui->customPlot->legend->setBrush(Qt::white);
+    ui->customPlot->legend->setBorderPen(QPen(QColor(80, 80, 80),1));
+    ui->customPlot->legend->setTextColor(Qt::black);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *e)
@@ -488,7 +500,9 @@ void MainWindow::initialize_graph(){
     graph_setDark();
    // customPlot->rescaleAxes();
    // customPlot->yAxis->setRange(0, 2);
-
+    ui->customPlot->legend->setVisible(true);
+    ui->customPlot->legend->setFont(QFont("Helvetica",9));
+    ui->customPlot->setAutoAddPlottableToLegend(false);
     ui->customPlot->xAxis->setRange(0,300);
     ui->customPlot->yAxis->setRange(0,4096);
     for (int j = 0; j < NUM_OF_CHANNELS; j++){
@@ -497,6 +511,7 @@ void MainWindow::initialize_graph(){
         ui->customPlot->graph(j)->addData(chGraphs.at(j).data.x, chGraphs.at(j).data.y);
         ui->customPlot->graph(j)->setPen(QPen(graph_palette[j], 1.2));
         ui->customPlot->graph(j)->setVisible(false); // Hide Graphs
+        ui->customPlot->graph(j)->setName("K" + QString::number(j+1));
     }
 
     for (int j = 0; j < MAX_MEASUREMENTS; j++){
@@ -506,6 +521,7 @@ void MainWindow::initialize_graph(){
         ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.2));
         if(j/(NUM_OF_COLORS - NUM_OF_CHANNELS) >= 1) ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.5, Qt::DotLine));
         ui->customPlot->graph(NUM_OF_CHANNELS+j)->setVisible(false); // Hide Graphs
+        ui->customPlot->graph(NUM_OF_CHANNELS+j)->setName("M" + QString::number(j+1));
     }
 
     ui->customPlot->replot();
@@ -546,6 +562,7 @@ void MainWindow::on_btn_ch_clicked()
     chmini[n]->show();
     sender()->setProperty("visible",false);
     ui->customPlot->graph(n)->setVisible(true);
+    ui->customPlot->graph(n)->addToLegend();
     ui->customPlot->replot();
 }
 
@@ -555,6 +572,7 @@ void MainWindow::on_mini_ch_close_clicked()
     int n = sender()->property("objectName").toString()[6].unicode()-49;
     chbutton[n]->show();
     ui->customPlot->graph(n)->setVisible(false);
+    ui->customPlot->graph(n)->removeFromLegend();
     ui->customPlot->replot();
 }
 
@@ -661,6 +679,30 @@ void MainWindow::on_btn_graph_zoomout_clicked()
 void MainWindow::on_btn_start_reg_clicked()
 {
     if(ConnectionSet){
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("031C00"));
+            socket->write(*datagram);
+        delayms();
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("031B01"));
+            socket->write(*datagram);
+        delayms();
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("064A01FF7F46"));
+            socket->write(*datagram);
+            delayms();
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("064A02FF7F46"));
+            socket->write(*datagram);
+            delayms();
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("064A03FF7F46"));
+            socket->write(*datagram);
+            delayms();
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("064A04FF7F46"));
+            socket->write(*datagram);
+
         for(int i = 0; i < NUM_OF_CHANNELS; i++){
             cur_x[i] = 0;
         }
@@ -836,8 +878,9 @@ void MainWindow::hide_subwidgets()
 
 void MainWindow::on_math_update_settings()
 {
-    for(int i = 8; i < NUM_OF_COLORS; i++){
+    for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+MAX_MEASUREMENTS; i++){
         ui->customPlot->graph(i)->setVisible(false);
+        ui->customPlot->graph(i)->removeFromLegend();
     }
     ui->customPlot->replot();
     emit math_request();
@@ -866,6 +909,7 @@ void MainWindow::on_math_result_graph(int math_num, QVector<QVector<double>> gra
             ui->customPlot->graph(7+math_num)->addData(ui->customPlot->graph(0)->data()->at(j)->mainKey(),graphs.at(0).at(j));
         }
         ui->customPlot->graph(7+math_num)->setVisible(true);
+        ui->customPlot->graph(7+math_num)->addToLegend();
 
     ui->customPlot->replot();
 }
@@ -919,40 +963,12 @@ void MainWindow::on_btn_settings_clicked()
 
 }
 
-
-void MainWindow::on_btn_start_reg_2_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("030604"));
-        socket->write(*datagram);
-    }
-}
-
-
-void MainWindow::on_btn_start_reg_3_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("039A00"));
-        socket->write(*datagram);
-    }
-}
-
-
-void MainWindow::on_btn_start_reg_4_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("0219"));
-        socket->write(*datagram);
-    }
-}
-
-
 void MainWindow::on_btn_start_reg_5_clicked()
 {
     if(ConnectionSet){
+        //progressDialog = new QProgressDialog("Чтение записи сигнала","Отмена",0,100);
+        //progressDialog->setValue(75);
+
         for(cur_fpga = 0; cur_fpga < 4; cur_fpga++){
             datagram->clear();
             datagram->append(QByteArray::fromHex("0370")); // СЛОЖНО
@@ -1122,7 +1138,10 @@ void MainWindow::load_graph_from_csv(QList<QStringList> points){
             ui->customPlot->graph(i)->addData(points[1+num_of_chan+i][2*j+1].toDouble(), points[1+num_of_chan+i][2*(j+1)].toDouble());
         }
     }
+    ui->customPlot->xAxis->setRange(points[1+num_of_chan][1].toInt(),points[1+num_of_chan][2*points[1+num_of_chan][0].toInt()-1].toDouble());
+    ui->customPlot->yAxis->setRange(0,4096);
     ui->customPlot->replot();
+    on_btn_call_math_clicked();
 }
 
 void MainWindow::on_btn_load_graph_csv_choice_clicked()
@@ -1141,20 +1160,22 @@ void MainWindow::on_btn_load_graph_csv_default_clicked()
 void MainWindow::on_btn_add_math_clicked()
 {
     int last_id = mathForms.count();
-    mathForms.append(new MathForm(last_id+1));
-    ui->scrollAreaWidgetContents->layout()->addWidget(mathForms.at(last_id));
-    mathForms.at(last_id)->show();
-    connect(mathForms.at(last_id), SIGNAL (close_clicked()), this, SLOT (on_btn_math_close_clicked()));
+    if(last_id < 10){
+        mathForms.append(new MathForm(last_id+1));
+        ui->scrollAreaWidgetContents->layout()->addWidget(mathForms.at(last_id));
+        mathForms.at(last_id)->show();
+        connect(mathForms.at(last_id), SIGNAL (close_clicked()), this, SLOT (on_btn_math_close_clicked()));
 
-    QString m_number = last_id>8 ? QString::number(last_id+1):"0" + QString::number(last_id+1);
-    mathForms.at(last_id)->setProperty("objectName","Measur" + m_number);
+        QString m_number = last_id>8 ? QString::number(last_id+1):"0" + QString::number(last_id+1);
+        mathForms.at(last_id)->setProperty("objectName","Measur" + m_number);
 
-    connect(this, SIGNAL (math_request()), mathForms.at(last_id), SLOT (on_math_request()));
-    connect(mathForms.at(last_id), SIGNAL (math_data_request(int, QVector<int>)), this, SLOT (on_math_data_request(int, QVector<int>)));
-    //connect(this, SIGNAL (math_send_data(QVector<QVector<double>>)), mathForms.at(last_id), SLOT (on_math_send_data(QVector<QVector<double>>)));
-    connect(mathForms.at(last_id), SIGNAL (math_result_graph(int, QVector<QVector<double>>)), this, SLOT (on_math_result_graph(int, QVector<QVector<double>>)));
-    connect(mathForms.at(last_id), SIGNAL (math_result_number(int, QVector<double>)), this, SLOT (on_math_result_number(int, QVector<double>)));
-    connect(mathForms.at(last_id), SIGNAL (math_update_settings()), this, SLOT (on_btn_call_math_clicked()));
+        connect(this, SIGNAL (math_request()), mathForms.at(last_id), SLOT (on_math_request()));
+        connect(mathForms.at(last_id), SIGNAL (math_data_request(int, QVector<int>)), this, SLOT (on_math_data_request(int, QVector<int>)));
+        //connect(this, SIGNAL (math_send_data(QVector<QVector<double>>)), mathForms.at(last_id), SLOT (on_math_send_data(QVector<QVector<double>>)));
+        connect(mathForms.at(last_id), SIGNAL (math_result_graph(int, QVector<QVector<double>>)), this, SLOT (on_math_result_graph(int, QVector<QVector<double>>)));
+        connect(mathForms.at(last_id), SIGNAL (math_result_number(int, QVector<double>)), this, SLOT (on_math_result_number(int, QVector<double>)));
+        connect(mathForms.at(last_id), SIGNAL (math_update_settings()), this, SLOT (on_btn_call_math_clicked()));
+    }
 }
 
 void MainWindow::on_btn_math_close_clicked()
@@ -1168,6 +1189,7 @@ void MainWindow::on_btn_math_close_clicked()
         mathForms.at(i)->setProperty("objectName","Measur" + m_number);
         mathForms.at(i)->change_number(i+1);
     }
+    on_btn_call_math_clicked();
 }
 
 
@@ -1183,10 +1205,27 @@ void MainWindow::on_pushButton_5_clicked()
 
 void MainWindow::on_btn_call_math_clicked()
 {
-    for(int i = 8; i < NUM_OF_COLORS; i++){
+    for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+MAX_MEASUREMENTS; i++){
         ui->customPlot->graph(i)->setVisible(false);
+        ui->customPlot->graph(i)->removeFromLegend();
     }
     ui->customPlot->replot();
     emit math_request();
+}
+
+
+void MainWindow::on_combo_measureX_currentIndexChanged(const QString &arg1)
+{
+    if (arg1 == "точки"){
+
+    }else if(arg1 == "нс"){
+    }
+}
+
+
+void MainWindow::on_btn_start_reg_2_clicked()
+{
+    progressDialog->show();
+    progressDialog->setValue(progressDialog->value()+10);
 }
 

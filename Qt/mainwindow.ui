@@ -54,7 +54,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -198,12 +198,19 @@
           <item>
            <widget class="QLabel" name="label_7">
             <property name="text">
-             <string>Размер предзаписи</string>
+             <string>Размер
+предзаписи</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QSpinBox" name="spinBox_4">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="minimum">
              <number>0</number>
             </property>
@@ -216,80 +223,6 @@
            </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_start_reg_2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>70</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>130</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>установка 1,6 ГГц
-синтезатора</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_2">
-          <property name="minimumSize">
-           <size>
-            <width>70</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>80</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Раздельные
-каналы</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="minimumSize">
-           <size>
-            <width>70</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Режим
-запуска</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_4">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Запись
-в АЦП</string>
-          </property>
-         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="btn_start_reg">
@@ -317,76 +250,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_start_reg_3">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>70</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>70</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Опрос
-квитанции</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Квитанция</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spinBox_2">
-            <property name="maximum">
-             <number>6500</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_start_reg_4">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>70</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>70</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Все ПЛИС
-на чтение</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="btn_start_reg_5">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -407,8 +270,8 @@
            </size>
           </property>
           <property name="text">
-           <string>Читать
-все ФИФО</string>
+           <string>Чтение
+записи</string>
           </property>
          </widget>
         </item>
@@ -417,12 +280,19 @@
           <item>
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Кол-во читаемых пакетов</string>
+             <string>Количество
+читаемых пакетов</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QSpinBox" name="spinBox_3">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>
@@ -438,63 +308,37 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_5">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>70</width>
+            <height>70</height>
+           </size>
+          </property>
           <property name="text">
            <string>Сброс
-ПЛИС</string>
+блока
+памяти</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_start_reg_6">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <property name="minimumSize">
+          <property name="sizeHint" stdset="0">
            <size>
-            <width>70</width>
-            <height>40</height>
+            <width>40</width>
+            <height>20</height>
            </size>
           </property>
-          <property name="maximumSize">
-           <size>
-            <width>70</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Все ПЛИС
-на запись</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_start_reg_7">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>120</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>70</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Загрузка Reg2-5
-TLoad</string>
-          </property>
-         </widget>
+         </spacer>
         </item>
        </layout>
       </widget>

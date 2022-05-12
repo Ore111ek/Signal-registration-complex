@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QProgressDialog>
+#include <QProgressBar>
 #include <QLayout>
 #include <QBoxLayout>
 #include <QVector>
@@ -54,6 +56,8 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QProgressBar *progressBar;
+    QProgressDialog *progressDialog;
     QVector<Graph> chGraphs, mathGraphs;
     ConnectionForm *ConnectForm;
     SettingsForm *SettingForm;
@@ -131,12 +135,6 @@ private slots:
 
     void on_btn_settings_clicked();
 
-    void on_btn_start_reg_2_clicked();
-
-    void on_btn_start_reg_3_clicked();
-
-    void on_btn_start_reg_4_clicked();
-
     void on_btn_start_reg_5_clicked();
 
     void on_btn_start_reg_7_clicked();
@@ -158,6 +156,10 @@ private slots:
     void on_pushButton_5_clicked();
 
     void on_btn_call_math_clicked();
+
+    void on_combo_measureX_currentIndexChanged(const QString &arg1);
+
+    void on_btn_start_reg_2_clicked();
 
 public slots:
     void ping_device(QString ip_str);

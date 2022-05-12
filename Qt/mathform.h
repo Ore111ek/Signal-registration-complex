@@ -38,7 +38,7 @@ public slots:
 
 signals:
     void close_clicked();
-    void math_update_settings();
+    void math_update_settings(); //используется вообще?
     void math_data_request(int num_math, QVector <int> channels);
     void math_result_graph(int num_math, QVector <QVector <double>> graphs);
     void math_result_number(int num_math, QVector <double> numbers);

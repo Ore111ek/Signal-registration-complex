@@ -117,6 +117,11 @@
             <string>Частота канала</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Фурье</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>

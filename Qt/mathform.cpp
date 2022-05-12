@@ -78,14 +78,31 @@ void MathForm::on_math_send_data(QVector<QVector<double>> graphs)
             emit math_result_graph(number, result_graph);
         break;
         case 2:// Умножить канал
-            for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append((graphs.at(0).at(i)-2048)*combo.at(1)->currentText().toInt()+2048);
+            //for(int i = 0; i<graphs.at(0).count(); i++){
+            //    one_graph.append((graphs.at(0).at(i)-2048)*combo.at(1)->currentText().toInt()+2048);
+            //}
+            for(int i = 0; i<combo.at(1)->currentText().toInt();i++){
+                one_graph.append((graphs.at(0).at(combo.at(1)->currentText().toInt())-2048)/combo.at(1)->currentText().toInt()+2048);
+            }
+            for(int i = 0; i<graphs.at(0).count()-combo.at(1)->currentText().toInt(); i++){
+                one_graph.append((graphs.at(0).at(i)-2048)+3850*combo.at(1)->currentText().toInt()+2048);
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
         break;
         case 3:// Амплитуда канала
             emit math_result_number(number, result_number);
+        break;
+        case 4:// Амплитуда канала
+            emit math_result_number(number, result_number);
+        break;
+        case 5:// Фурье
+
+            for(int i = 0; i<graphs.at(0).count(); i++){
+                one_graph.append(graphs.at(0).at(i)+graphs.at(1).at(i)-2048);
+            }
+            result_graph.append(one_graph);
+            emit math_result_graph(number, result_graph);
         break;
         default:// Частота канала
         break;
@@ -164,7 +181,7 @@ void MathForm::on_comboBox_type_currentIndexChanged(int index)
             for(int i = 1; i <= NUM_OF_CHANNELS; i++){
                 combo[0]->addItem("К" + QString::number(i));
             }
-            for(int i = 1; i <= 10; i++){
+            for(int i = 1; i <= 50; i++){
                 combo[1]->addItem(QString::number(i));
             }
             label.append(new QLabel());
@@ -182,6 +199,13 @@ void MathForm::on_comboBox_type_currentIndexChanged(int index)
         case 4:
         break;
         case 5:
+            combo.append(new QComboBox());
+            for(int i = 1; i <= NUM_OF_CHANNELS; i++){
+                combo[0]->addItem("К" + QString::number(i));
+            }
+            lay.append(new QHBoxLayout());
+            lay[0]->addWidget(combo[0]);
+            ui->groupBox_settings->setLayout(lay[0]);
         break;
         case 6:
         break;
