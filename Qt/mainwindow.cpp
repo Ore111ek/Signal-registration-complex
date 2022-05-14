@@ -215,7 +215,9 @@ MainWindow::MainWindow(QWidget *parent)
         mathForms[i] = new MathForm(i+1);
         ui->scrollAreaWidgetContents->layout()->addWidget(mathForms[i]);
     }*/
-
+    // Для меню
+    for(int i = 0; i < NUM_OF_CHANNELS; i++)
+        ui->comboBox_tr_ch->addItem(QString::number(i+1));
 }
 // Обработка входящих пакетов
 void MainWindow::readyReadUDP()
@@ -411,8 +413,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     hide_subwidgets();
-    qDebug() << "Left Mouse button pressed";
-    /*
+    //qDebug() << "Left Mouse button pressed";
+
     switch (event->button()) {
             case Qt::LeftButton:
             {
@@ -424,12 +426,26 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             case Qt::RightButton:
             {
                 //ui->customPlot->setSelectionRectMode(QCP::srmZoom);
+                if(tracer1 != nullptr){
+                    if(event->pos().x() < ui->customPlot->size().rwidth() && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() < ui->customPlot->size().rheight() + ui->customPlot->y()
+                            && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() > ui->customPlot->y()){
+                        tracer1->setGraphKey((event->pos().x()-37)*ui->customPlot->xAxis->range().size()/(ui->customPlot->size().rwidth()-51) + ui->customPlot->xAxis->range().lower);
+                        ui->customPlot->replot();
+                    }
+                }
 
-                qDebug() << "Right Mouse button pressed";
+                qDebug() << "Right Mouse button pressed in y=" + QString::number(event->globalPosition().y()) + " customY=" + QString::number(ui->customPlot->y());
                 break;
             }
             case Qt::MiddleButton:
             {
+                if(tracer2 != nullptr){
+                    if(event->pos().x() < ui->customPlot->size().rwidth() && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() < ui->customPlot->size().rheight() + ui->customPlot->y()
+                            && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() > ui->customPlot->y()){
+                        tracer2->setGraphKey((event->pos().x()-37)*ui->customPlot->xAxis->range().size()/(ui->customPlot->size().rwidth()-51) + ui->customPlot->xAxis->range().lower);
+                        ui->customPlot->replot();
+                    }
+                }
                 qDebug() << "Middle Mouse button pressed";
                 break;
             }
@@ -438,7 +454,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 qDebug() << "Other button pressed, id = "+QString::number(event->button());
                 break;
             }
-        } */
+        }
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
@@ -963,109 +979,6 @@ void MainWindow::on_btn_settings_clicked()
 
 }
 
-void MainWindow::on_btn_start_reg_5_clicked()
-{
-    if(ConnectionSet){
-        //progressDialog = new QProgressDialog("Чтение записи сигнала","Отмена",0,100);
-        //progressDialog->setValue(75);
-
-        for(cur_fpga = 0; cur_fpga < 4; cur_fpga++){
-            datagram->clear();
-            datagram->append(QByteArray::fromHex("0370")); // СЛОЖНО
-            datagram->append(cur_fpga);
-            for(int i = 0; i < ui->spinBox_3->value(); i++){
-                socket->write(*datagram);
-                delayms();
-            }
-        }
-        ui->customPlot->xAxis->setRange(0,cur_x[0]);
-        ui->customPlot->yAxis->setRange(0,4100);
-        ui->customPlot->replot();
-    }
-}
-
-
-void MainWindow::on_btn_start_reg_7_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("0220"));
-        socket->write(*datagram);
-    }
-}
-
-
-void MainWindow::on_btn_start_reg_6_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("0218"));
-        socket->write(*datagram);
-    }
-}
-
-
-void MainWindow::on_btn_start_reg_8_clicked()
-{
-    char ch; int Data;
-    for(int i = 0; i < 8; i++){
-        datagram->clear();
-        ch = (i+1) & 0xFF;
-        datagram->append(QByteArray::fromHex("051A")); //05 0B ch dd1 dd2
-        datagram->append(ch);
-        Data = ui->spinBox_4->value();
-        char Data1 = (Data>>8) & 0xFF;
-        char Data2 = Data & 0xFF;
-        datagram->append(Data2);
-        datagram->append(Data1);
-        socket->write(*datagram); // set Attenuation, Gain and filter
-
-        delayms();
-    }
-
-}
-
-void MainWindow::on_pushButton_2_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("031C00"));
-        socket->write(*datagram);
-    }
-}
-
-
-void MainWindow::on_pushButton_3_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("031B01"));
-        socket->write(*datagram);
-    }
-}
-
-
-void MainWindow::on_pushButton_4_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("064A01FF7F46"));
-        socket->write(*datagram);
-        delayms();
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("064A02FF7F46"));
-        socket->write(*datagram);
-        delayms();
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("064A03FF7F46"));
-        socket->write(*datagram);
-        delayms();
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("064A04FF7F46"));
-        socket->write(*datagram);
-    }
-}
-
 void MainWindow::WriteToCSV(const QList<QStringList>& points)
 {
     // Open csv-file
@@ -1193,16 +1106,6 @@ void MainWindow::on_btn_math_close_clicked()
 }
 
 
-void MainWindow::on_pushButton_5_clicked()
-{
-    if(ConnectionSet){
-        datagram->clear();
-        datagram->append(QByteArray::fromHex("0293"));
-        socket->write(*datagram);
-    }
-}
-
-
 void MainWindow::on_btn_call_math_clicked()
 {
     for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+MAX_MEASUREMENTS; i++){
@@ -1222,10 +1125,185 @@ void MainWindow::on_combo_measureX_currentIndexChanged(const QString &arg1)
     }
 }
 
-
-void MainWindow::on_btn_start_reg_2_clicked()
+void MainWindow::on_btn_clear_RAM_clicked()
 {
-    progressDialog->show();
-    progressDialog->setValue(progressDialog->value()+10);
+    if(ConnectionSet){
+        datagram->clear();
+        datagram->append(QByteArray::fromHex("0293"));
+        socket->write(*datagram);
+    }
+}
+
+
+void MainWindow::on_btn_set_pre_rec_clicked()
+{
+    char ch; int Data;
+    for(int i = 0; i < 8; i++){
+        datagram->clear();
+        ch = (i+1) & 0xFF;
+        datagram->append(QByteArray::fromHex("051A")); //05 0B ch dd1 dd2
+        datagram->append(ch);
+        Data = ui->spinBox_4->value();
+        char Data1 = (Data>>8) & 0xFF;
+        char Data2 = Data & 0xFF;
+        datagram->append(Data2);
+        datagram->append(Data1);
+        socket->write(*datagram); // set Attenuation, Gain and filter
+
+        delayms();
+    }
+}
+
+
+void MainWindow::on_btn_read_part_clicked()
+{
+    if(ConnectionSet){
+        //progressDialog = new QProgressDialog("Чтение записи сигнала","Отмена",0,100);
+        //progressDialog->setValue(75);
+
+        for(cur_fpga = 0; cur_fpga < 4; cur_fpga++){
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("0370")); // СЛОЖНО
+            datagram->append(cur_fpga);
+            for(int i = 0; i < ui->spinBox_3->value(); i++){
+                socket->write(*datagram);
+                delayms();
+            }
+        }
+        ui->customPlot->xAxis->setRange(0,cur_x[0]);
+        ui->customPlot->yAxis->setRange(0,4100);
+        ui->customPlot->replot();
+    }
+}
+
+
+void MainWindow::on_spinBox_3_textChanged(const QString &arg1)
+{
+    ui->btn_read_part->setText("Чтение\n" + arg1 + "\nпакетов");
+}
+
+
+void MainWindow::on_btn_read_all_clicked()
+{
+    if(ConnectionSet){
+        progressDialog = new QProgressDialog("Чтение записи сигнала","Отмена",0,100);
+        for(cur_fpga = 0; cur_fpga < 4; cur_fpga++){
+            datagram->clear();
+            datagram->append(QByteArray::fromHex("0370")); // СЛОЖНО
+            datagram->append(cur_fpga);
+            for(int i = 0; i < 500; i++){
+                socket->write(*datagram);
+                delayms();
+            }
+            progressDialog->setValue((cur_fpga+1)*25);
+        }
+        ui->customPlot->xAxis->setRange(0,cur_x[0]);
+        ui->customPlot->yAxis->setRange(0,4100);
+        ui->customPlot->replot();
+        progressDialog->close();
+    }
+}
+
+
+void MainWindow::on_btn_tracer_clicked()
+{
+    if(tracer1 == nullptr){
+        tracer1 = new QCPItemTracer(ui->customPlot);
+        tracer1->setPen(QPen(QColor(130, 180, 250), 1.5, Qt::DashDotDotLine));
+        tracer1->setGraph(ui->customPlot->graph(ui->comboBox_tr_ch->currentIndex()));
+        ui->btn_tracer->setText("Спрятать\nкурсор 1");
+    } else {
+        delete tracer1;
+        tracer1 = nullptr;
+        ui->btn_tracer->setText("Показать\nкурсор 1");
+    }
+}
+
+
+void MainWindow::on_btn_tracer2_clicked()
+{
+    if(tracer2 == nullptr){
+        tracer2 = new QCPItemTracer(ui->customPlot);
+        tracer2->setPen(QPen(QColor(130, 250, 160), 1.5, Qt::DashDotDotLine));
+        tracer2->setGraph(ui->customPlot->graph(ui->comboBox_tr_ch->currentIndex()));
+        ui->btn_tracer2->setText("Спрятать\nкурсор 2");
+    } else {
+        delete tracer2;
+        tracer2 = nullptr;
+        ui->btn_tracer2->setText("Показать\nкурсор 2");
+        ui->customPlot->replot();
+    }
+}
+
+
+void MainWindow::on_btn_tr_time_clicked()
+{
+    ui->textEdit_tr_result->append("Время между курсорами: " + QString::number(tracer2->position->key() - tracer1->position->key()));
+}
+
+
+void MainWindow::on_btn_tr_freq_clicked()
+{
+    ui->textEdit_tr_result->append("1/время: " + QString::number(1/(tracer2->position->key() - tracer1->position->key())));
+}
+
+
+void MainWindow::on_btn_tr_max_min_clicked()
+{
+    QSharedPointer <QCPGraphDataContainer> data = tracer1->graph()->data();
+    double minx, miny, maxx, maxy;
+    bool flag = true;
+    for(int i = 0; i < data->size(); i++){
+        if(data->at(i)->key > tracer1->graphKey() && data->at(i)->key < tracer2->graphKey()){
+            if(flag){
+                maxx = minx = data->at(i)->key;
+                maxy = miny = data->at(i)->value;
+                flag = false;
+            }
+            if(data->at(i)->value > maxy){
+                maxx = data->at(i)->key;
+                maxy = data->at(i)->value;
+            }else if(data->at(i)->value < miny){
+                minx = data->at(i)->key;
+                miny = data->at(i)->value;
+            }
+        }
+    }
+    ui->textEdit_tr_result->append("Максимум: x = " + QString::number(maxx) + "; y = " + QString::number(maxy));
+    ui->textEdit_tr_result->append("Минимум: x = " + QString::number(minx) + "; y = " + QString::number(miny));
+}
+
+void MainWindow::on_btn_tr_ampl_clicked()
+{
+    QSharedPointer <QCPGraphDataContainer> data = tracer1->graph()->data();
+    double miny, maxy;
+    bool flag = true;
+    for(int i = 0; i < data->size(); i++){
+        if(data->at(i)->key > tracer1->graphKey() && data->at(i)->key < tracer2->graphKey()){
+            if(flag){
+                maxy = miny = data->at(i)->value;
+                flag = false;
+            }
+            if(data->at(i)->value > maxy){
+                maxy = data->at(i)->value;
+            }else if(data->at(i)->value < miny){
+                miny = data->at(i)->value;
+            }
+        }
+    }
+    ui->textEdit_tr_result->append("Размах: " + QString::number(maxy - miny));
+}
+
+void MainWindow::on_btn_tr_clear_clicked()
+{
+    ui->textEdit_tr_result->clear();
+}
+
+void MainWindow::on_comboBox_tr_ch_currentIndexChanged(int index)
+{
+    if(tracer1 != nullptr)
+        tracer1->setGraph(ui->customPlot->graph(index));
+    if(tracer2 != nullptr)
+        tracer2->setGraph(ui->customPlot->graph(index));
 }
 

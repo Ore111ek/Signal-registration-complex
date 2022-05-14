@@ -25,6 +25,7 @@
 #include "chanform.h"
 #include "mathform.h"
 #include "DeviceConstants.h"
+#include "qcustomplot.h"
 
 #define NUM_OF_COLORS 13
 #define MAX_MEASUREMENTS 10
@@ -77,6 +78,9 @@ private:
     bool goodResponse;  // В ответ на запрос приходит сообщение о подтверждении выполнения 03 xx FF
     bool wrongCommand;  // Если запрос был повторён и ответ всё ещё 03 xx EE, то отправляемая команда не корректна
     int delayTime = 100; // Задержка между отправкой двух последовательных команд
+
+    QCPItemTracer *tracer1 = nullptr;
+    QCPItemTracer *tracer2 = nullptr;
 
     QStringList chansCSV[NUM_OF_CHANNELS];
 
@@ -135,31 +139,37 @@ private slots:
 
     void on_btn_settings_clicked();
 
-    void on_btn_start_reg_5_clicked();
-
-    void on_btn_start_reg_7_clicked();
-
-    void on_btn_start_reg_6_clicked();
-
-    void on_btn_start_reg_8_clicked();
-
     void on_btn_add_math_clicked();
-
-    void on_pushButton_2_clicked();
-
-    void on_pushButton_3_clicked();
-
-    void on_pushButton_4_clicked();
-
-
-
-    void on_pushButton_5_clicked();
 
     void on_btn_call_math_clicked();
 
     void on_combo_measureX_currentIndexChanged(const QString &arg1);
 
-    void on_btn_start_reg_2_clicked();
+    void on_btn_clear_RAM_clicked();
+
+    void on_btn_set_pre_rec_clicked();
+
+    void on_btn_read_part_clicked();
+
+    void on_spinBox_3_textChanged(const QString &arg1);
+
+    void on_btn_read_all_clicked();
+
+    void on_btn_tracer_clicked();
+
+    void on_btn_tracer2_clicked();
+
+    void on_btn_tr_time_clicked();
+
+    void on_btn_tr_freq_clicked();
+
+    void on_btn_tr_max_min_clicked();
+
+    void on_btn_tr_clear_clicked();
+
+    void on_btn_tr_ampl_clicked();
+
+    void on_comboBox_tr_ch_currentIndexChanged(int index);
 
 public slots:
     void ping_device(QString ip_str);
