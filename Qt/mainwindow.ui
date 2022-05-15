@@ -54,7 +54,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>4</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -707,7 +707,17 @@
              </item>
              <item>
               <property name="text">
+               <string>мкс</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>мс</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>с</string>
               </property>
              </item>
             </widget>
@@ -1362,7 +1372,7 @@
           </property>
           <property name="text">
            <string>Очистить
-вывод</string>
+результаты</string>
           </property>
          </widget>
         </item>

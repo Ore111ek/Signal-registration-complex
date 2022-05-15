@@ -35,8 +35,61 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 class GraphData{
+    QVector<double> x_, y_; // в точках и отсчётах(кодах) АЦП
+    QVector<double> x_ns_, x_mcs_, x_ms_, x_s_; // нс, мкс, мс, с
+    QVector<double> y_mv_, y_v_; // мВ, В
+    double sample_rate = 1600000000;
+    // Расчёт для всех единиц измерения
+    void add_x(QVector<double> x){ // x в точках
+        for(int i = 0; i < x.size(); i++){
+            x_.append(x.at(i));
+            x_s_.append(x.at(i)/sample_rate);
+            x_ms_.append(x.at(i)/(sample_rate/1000));
+            x_mcs_.append(x.at(i)/(sample_rate/1000000));
+            x_ns_.append(x.at(i)/(sample_rate/1000000000));
+        }
+    };
+    void add_y(QVector<double> y){ // y в отсчётах АЦП ( от 0 до 4096)
+        for(int i = 0; i < y.size(); i++){
+            y_.append(y.at(i));
+            y_v_.append(y.at(i)*cal[20*ch + 4*(4-range) + 2*resist] + cal[20*ch + 4*(4-range) + 2*resist +1]);
+            y_mv_.append((y.at(i)*cal[20*ch + 4*(4-range) + 2*resist] + cal[20*ch + 4*(4-range) + 2*resist +1]) * 1000 );
+        }
+    };
+    void set_x(QVector<double> x){ // x в точках
+        x_.clear();
+        x_s_.clear(); x_ms_.clear(); x_mcs_.clear(); x_ns_.clear();
+        add_x(x);
+    };
+    void set_y(QVector<double> y){ // y в отсчётах АЦП ( от 0 до 4096)
+        y_.clear();
+        y_mv_.clear(); y_v_.clear();
+        add_y(y);
+    };
 public:
-    QVector<double> x, y; // в отсчётах и кодах АЦП
+    int resist; // 1 - 1 МОм, 0 - 50 Ом
+    int range; // 0 - +-5В, .. , 4 - +-0.1В
+    int ch; // 0 - 1 канал
+    // Доступно чтение в любой единице измерения
+    QVector<double> x(){return x_;};
+    QVector<double> y(){return y_;};
+    QVector<double> x_ns(){return x_ns_;};
+    QVector<double> x_mcs(){return x_mcs_;};
+    QVector<double> x_ms(){return x_ms_;};
+    QVector<double> x_s(){return x_s_;};
+    QVector<double> y_mv(){return y_mv_;};
+    QVector<double> y_v(){return y_v_;};
+    // Загрузка данных
+    void set_data(QVector<double> x, QVector<double> y){
+        set_x(x);
+        set_y(y);
+    }
+    void add_data(QVector<double> x, QVector<double> y){
+        add_x(x);
+        add_y(y);
+    }
+    // Установка частоты дискретизации
+    void set_sample_rate(double f){sample_rate = f;};
 };
 
 class Graph{
@@ -60,6 +113,7 @@ private:
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
     QVector<Graph> chGraphs, mathGraphs;
+    GraphData chGrData[NUM_OF_CHANNELS];
     ConnectionForm *ConnectForm;
     SettingsForm *SettingForm;
     QWidget *ChSettingsForm;
@@ -105,6 +159,8 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
+    void update_ranges_of_Graph();
+
     void on_btn_conForm_clicked();
     void on_mini_ch_close_clicked();
     void on_btn_ch_clicked();
@@ -143,7 +199,7 @@ private slots:
 
     void on_btn_call_math_clicked();
 
-    void on_combo_measureX_currentIndexChanged(const QString &arg1);
+    void update_measureXY();
 
     void on_btn_clear_RAM_clicked();
 
@@ -170,6 +226,12 @@ private slots:
     void on_btn_tr_ampl_clicked();
 
     void on_comboBox_tr_ch_currentIndexChanged(int index);
+
+
+
+    void on_combo_measureY_currentTextChanged(const QString &arg1);
+
+    void on_combo_measureX_currentTextChanged(const QString &arg1);
 
 public slots:
     void ping_device(QString ip_str);

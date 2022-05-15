@@ -14,6 +14,10 @@ class ChMiniForm : public QWidget
 public:
     explicit ChMiniForm(int ch_number, QWidget *parent = nullptr);
     ~ChMiniForm();
+    int get_range(){return range;};
+    int get_resist(){return resist;};
+    int get_offset(){return offset;};
+    int get_filter(){return filter;};
 
 private slots:
     void on_closeButton_clicked();
@@ -25,6 +29,10 @@ private slots:
 private:
     Ui::ChMiniForm *ui;
     int ch_num;
+    int range;
+    bool resist;
+    int offset;
+    int filter;
 
 signals:
     void close_clicked();

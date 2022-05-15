@@ -29,9 +29,13 @@ void ChMiniForm::on_editButton_clicked()
     emit edit_clicked(coord);
 }
 
-void ChMiniForm::update_settings(int channel, int range, bool resist, int offset, int filter)
+void ChMiniForm::update_settings(int channel, int range_, bool resist_, int offset_, int filter_)
 {
     if(channel == ch_num){
+        range = range_;
+        resist = resist_;
+        offset = offset_;
+        filter = filter_;
         QString Str = "";
         switch (range) {
             case 0: Str = "±5.0 В";
