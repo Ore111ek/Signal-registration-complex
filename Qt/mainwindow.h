@@ -56,16 +56,6 @@ class GraphData{
             y_mv_.append((y.at(i)*cal[20*ch + 4*(4-range) + 2*resist] + cal[20*ch + 4*(4-range) + 2*resist +1]) * 1000 );
         }
     };
-    void set_x(QVector<double> x){ // x в точках
-        x_.clear();
-        x_s_.clear(); x_ms_.clear(); x_mcs_.clear(); x_ns_.clear();
-        add_x(x);
-    };
-    void set_y(QVector<double> y){ // y в отсчётах АЦП ( от 0 до 4096)
-        y_.clear();
-        y_mv_.clear(); y_v_.clear();
-        add_y(y);
-    };
 public:
     int resist; // 1 - 1 МОм, 0 - 50 Ом
     int range; // 0 - +-5В, .. , 4 - +-0.1В
@@ -80,9 +70,13 @@ public:
     QVector<double> y_mv(){return y_mv_;};
     QVector<double> y_v(){return y_v_;};
     // Загрузка данных
+    void clear_data(){
+        x_.clear(); x_s_.clear(); x_ms_.clear(); x_mcs_.clear(); x_ns_.clear();
+        y_.clear(); y_mv_.clear(); y_v_.clear();
+    };
     void set_data(QVector<double> x, QVector<double> y){
-        set_x(x);
-        set_y(y);
+        clear_data();
+        add_data(x,y);
     }
     void add_data(QVector<double> x, QVector<double> y){
         add_x(x);
@@ -114,6 +108,7 @@ private:
     QProgressDialog *progressDialog;
     QVector<Graph> chGraphs, mathGraphs;
     GraphData chGrData[NUM_OF_CHANNELS];
+    QVector <QVector<double>> mathGrData;
     ConnectionForm *ConnectForm;
     SettingsForm *SettingForm;
     QWidget *ChSettingsForm;
@@ -132,7 +127,7 @@ private:
     bool goodResponse;  // В ответ на запрос приходит сообщение о подтверждении выполнения 03 xx FF
     bool wrongCommand;  // Если запрос был повторён и ответ всё ещё 03 xx EE, то отправляемая команда не корректна
     int delayTime = 100; // Задержка между отправкой двух последовательных команд
-
+    double sample_rate = 1600000000;
     QCPItemTracer *tracer1 = nullptr;
     QCPItemTracer *tracer2 = nullptr;
 
@@ -232,6 +227,10 @@ private slots:
     void on_combo_measureY_currentTextChanged(const QString &arg1);
 
     void on_combo_measureX_currentTextChanged(const QString &arg1);
+
+    void on_comboBox_tr2_ch_currentIndexChanged(int index);
+
+    void on_btn_tr_fourier_clicked();
 
 public slots:
     void ping_device(QString ip_str);

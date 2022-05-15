@@ -54,7 +54,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>5</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -1234,14 +1234,33 @@
        <attribute name="title">
         <string>Измерение</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_13">
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
         <item>
          <widget class="QPushButton" name="btn_tracer">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
-            <width>70</width>
+            <width>80</width>
             <height>70</height>
            </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton:hover {
+     border: 1px solid #bc3be3;
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99aacc, stop: 1 #aabbff);
+	 color: black;
+   }</string>
           </property>
           <property name="text">
            <string>Показать
@@ -1251,11 +1270,31 @@
         </item>
         <item>
          <widget class="QPushButton" name="btn_tracer2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
-            <width>70</width>
+            <width>80</width>
             <height>70</height>
            </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton:hover {
+     border: 1px solid #bc3be3;
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #99ccaa, stop: 1 #aaffbb);
+	 color: black;
+ }</string>
           </property>
           <property name="text">
            <string>Показать
@@ -1265,6 +1304,9 @@
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="spacing">
+           <number>3</number>
+          </property>
           <item>
            <widget class="QLabel" name="label_8">
             <property name="sizePolicy">
@@ -1274,12 +1316,31 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Канал для измерений</string>
+             <string>Курсоры для каналов</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_tr_ch"/>
+           <widget class="QComboBox" name="comboBox_tr_ch">
+            <property name="styleSheet">
+             <string notr="true">QComboBox {
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #99aacc, stop: 1 #aabbff);
+
+   }
+</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox_tr2_ch">
+            <property name="styleSheet">
+             <string notr="true">QComboBox {
+     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #99ccaa, stop: 1 #aaffbb);
+   }</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1289,7 +1350,10 @@
            <enum>QFrame::Plain</enum>
           </property>
           <property name="lineWidth">
-           <number>2</number>
+           <number>1</number>
+          </property>
+          <property name="midLineWidth">
+           <number>1</number>
           </property>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1350,12 +1414,30 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btn_tr_fourier">
+          <property name="minimumSize">
+           <size>
+            <width>70</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Частота
+гармоники
+Фурье</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="Line" name="line_2">
           <property name="frameShadow">
            <enum>QFrame::Plain</enum>
           </property>
           <property name="lineWidth">
-           <number>2</number>
+           <number>1</number>
+          </property>
+          <property name="midLineWidth">
+           <number>1</number>
           </property>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1377,7 +1459,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QHBoxLayout" name="horizontalLayout_13">
           <property name="spacing">
            <number>5</number>
           </property>
@@ -1390,7 +1472,8 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Результаты измерений</string>
+             <string>Результаты
+измерений:</string>
             </property>
            </widget>
           </item>
@@ -1405,7 +1488,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>45</height>
+              <height>68</height>
              </size>
             </property>
             <property name="readOnly">

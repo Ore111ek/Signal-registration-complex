@@ -1,6 +1,58 @@
 #include "mathform.h"
 #include "ui_mathform.h"
 
+const double TwoPi = 6.283185307179586;
+// AVal - массив анализируемых данных, Nvl - длина массива должна быть кратна степени 2.
+// FTvl - массив полученных значений, Nft - длина массива должна быть равна Nvl.
+void FFTAnalysis(QVector<double> AVal, QVector<double> *FTvl, int Nvl, int Nft) {
+  int i, j, n, m, Mmax, Istp;
+  double Tmpr, Tmpi, Wtmp, Theta;
+  double Wpr, Wpi, Wr, Wi;
+  double *Tmvl;
+
+  n = Nvl * 2; Tmvl = new double[n];
+  for (i = 0; i < n; i+=2) {
+   Tmvl[i] = 0;
+   Tmvl[i+1] = AVal[i/2];
+  }
+  i = 1; j = 1;
+  while (i < n) {
+    if (j > i) {
+      Tmpr = Tmvl[i]; Tmvl[i] = Tmvl[j]; Tmvl[j] = Tmpr;
+      Tmpr = Tmvl[i+1]; Tmvl[i+1] = Tmvl[j+1]; Tmvl[j+1] = Tmpr;
+    }
+    i = i + 2; m = Nvl;
+    while ((m >= 2) && (j > m)) {
+      j = j - m; m = m >> 1;
+    }
+    j = j + m;
+  }
+  Mmax = 2;
+  while (n > Mmax) {
+    Theta = -TwoPi / Mmax; Wpi = sin(Theta);
+    Wtmp = sin(Theta / 2); Wpr = Wtmp * Wtmp * 2;
+    Istp = Mmax * 2; Wr = 1; Wi = 0; m = 1;
+    while (m < Mmax) {
+      i = m; m = m + 2; Tmpr = Wr; Tmpi = Wi;
+      Wr = Wr - Tmpr * Wpr - Tmpi * Wpi;
+      Wi = Wi + Tmpr * Wpi - Tmpi * Wpr;
+      while (i < n) {
+        j = i + Mmax;
+        Tmpr = Wr * Tmvl[j] - Wi * Tmvl[j-1];
+        Tmpi = Wi * Tmvl[j] + Wr * Tmvl[j-1];
+
+        Tmvl[j] = Tmvl[i] - Tmpr; Tmvl[j-1] = Tmvl[i-1] - Tmpi;
+        Tmvl[i] = Tmvl[i] + Tmpr; Tmvl[i-1] = Tmvl[i-1] + Tmpi;
+        i = i + Istp;
+      }
+    }
+    Mmax = Istp;
+  }
+  for (i = 0; i < Nft; i++) {
+    j = i * 2; FTvl->append(2*sqrt(pow(Tmvl[j],2) + pow(Tmvl[j+1],2))/Nvl);
+  }
+  delete []Tmvl;
+}
 
 MathForm::MathForm(int m_number, QWidget *parent) :
     QWidget(parent),
@@ -51,6 +103,9 @@ void MathForm::on_math_request()
         case 3:// Амплитуда канала
 
         break;
+        case 5:// Фурье
+            channels.append(combo.at(0)->currentIndex());
+        break;
         default:// Частота канала
         break;
     }
@@ -65,27 +120,21 @@ void MathForm::on_math_send_data(QVector<QVector<double>> graphs)
     switch (ui->comboBox_type->currentIndex()){
         case 0:// Разность каналов
             for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append(graphs.at(0).at(i)-graphs.at(1).at(i)+2048);
+                one_graph.append(graphs.at(0).at(i)-graphs.at(1).at(i));
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
         break;
         case 1:// Сумма каналов
             for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append(graphs.at(0).at(i)+graphs.at(1).at(i)-2048);
+                one_graph.append(graphs.at(0).at(i)+graphs.at(1).at(i));
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
         break;
         case 2:// Умножить канал
-            //for(int i = 0; i<graphs.at(0).count(); i++){
-            //    one_graph.append((graphs.at(0).at(i)-2048)*combo.at(1)->currentText().toInt()+2048);
-            //}
-            for(int i = 0; i<combo.at(1)->currentText().toInt();i++){
-                one_graph.append((graphs.at(0).at(combo.at(1)->currentText().toInt())-2048)/combo.at(1)->currentText().toInt()+2048);
-            }
-            for(int i = 0; i<graphs.at(0).count()-combo.at(1)->currentText().toInt(); i++){
-                one_graph.append((graphs.at(0).at(i)-2048)+3850*combo.at(1)->currentText().toInt()+2048);
+            for(int i = 0; i<graphs.at(0).count(); i++){
+                one_graph.append((graphs.at(0).at(i))*combo.at(1)->currentText().toInt());
             }
             result_graph.append(one_graph);
             emit math_result_graph(number, result_graph);
@@ -97,12 +146,27 @@ void MathForm::on_math_send_data(QVector<QVector<double>> graphs)
             emit math_result_number(number, result_number);
         break;
         case 5:// Фурье
-
-            for(int i = 0; i<graphs.at(0).count(); i++){
-                one_graph.append(graphs.at(0).at(i)+graphs.at(1).at(i)-2048);
+            //double sample_rate = 1600000000; Вроде уже mainwindow будет выставлять измерение на yAxis2
+        {//Без скобок ошибка из-за объявления переменных внутри case
+            int num = graphs.at(0).length();
+            int power = -1;
+            while(num > 0){
+                num /= 2;
+                power++;
             }
-            result_graph.append(one_graph);
+            num = pow(2,power);
+            // graphs.at(0) - массив анализируемых данных, num - длина массива должна быть кратна степени 2.
+            // fftgraph - массив полученных значений, num - длина массива должна быть равна Nvl.
+            QVector <double> fftgraph;
+            FFTAnalysis(graphs.at(0), &fftgraph, num, num);
+            QVector <double> fftresult;
+            int size = graphs.at(0).length();
+            for(int i = 0; i < size; i++){
+                fftresult.append(fftgraph.at((int)(i*(num/2-1)/(size-1))));
+            }
+            result_graph.append(fftresult);
             emit math_result_graph(number, result_graph);
+        }
         break;
         default:// Частота канала
         break;

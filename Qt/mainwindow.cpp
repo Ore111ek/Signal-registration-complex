@@ -231,8 +231,14 @@ MainWindow::MainWindow(QWidget *parent)
         ui->scrollAreaWidgetContents->layout()->addWidget(mathForms[i]);
     }*/
     // Для меню
-    for(int i = 0; i < NUM_OF_CHANNELS; i++)
+    for(int i = 0; i < NUM_OF_CHANNELS; i++){
         ui->comboBox_tr_ch->addItem(QString::number(i+1));
+        ui->comboBox_tr2_ch->addItem(QString::number(i+1));
+    }
+
+    // Fourier
+    ui->customPlot->yAxis2->setLabel("МГц");
+    ui->customPlot->yAxis2->setLabelColor(Qt::white);
 }
 // Обработка входящих пакетов
 void MainWindow::readyReadUDP()
@@ -251,13 +257,21 @@ void MainWindow::readyReadUDP()
     if((unsigned char)datagram->at(1)==0x9A){
         //ui->spinBox_2->setValue((unsigned char)buffer.at(0)); опрос квитанции
     } else if(datagram->at(1)==0x70){
+        QVector <double> recx1, recx2, recy1, recy2;
+        recx1.clear(); recx2.clear(); recy1.clear(); recy2.clear();
         for(int w = 0; w < 80; w++){
-                ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
-                ui->customPlot->graph(2*cur_fpga)->addData(cur_x[2*cur_fpga], (buffer.at(4*w+3)&0x0F)*256 + (unsigned char)buffer.at(4*w+2));
+                //ui->customPlot->graph(2*cur_fpga+1)->addData(cur_x[2*cur_fpga+1], (buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
+                //ui->customPlot->graph(2*cur_fpga)->addData(cur_x[2*cur_fpga], (buffer.at(4*w+3)&0x0F)*256 + (unsigned char)buffer.at(4*w+2));
+                recx1.append(cur_x[2*cur_fpga]);
+                recx2.append(cur_x[2*cur_fpga+1]);
+                recy1.append((buffer.at(4*w+3)&0x0F)*256 + (unsigned char)buffer.at(4*w+2));
+                recy2.append((buffer.at(4*w+1)&0x0F)*256 + (unsigned char)buffer.at(4*w));
                 cur_x[2*cur_fpga]+=1;
                 cur_x[2*cur_fpga+1]+=1;
         }
-        ui->customPlot->replot();
+        chGrData[2*cur_fpga].add_data(recx1,recy1);
+        chGrData[2*cur_fpga+1].add_data(recx2,recy2);
+        update_ranges_of_Graph();
     }else{
     if(buffer.at(0)==0x02){        // Пришёл ответ из 2 байт
         if(datagram->at(1)==0x02){ // Если отправляли ping
@@ -448,12 +462,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 if(tracer1 != nullptr){
                     if(event->pos().x() < ui->customPlot->size().rwidth() && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() < ui->customPlot->size().rheight() + ui->customPlot->y()
                             && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() > ui->customPlot->y()){
-                        tracer1->setGraphKey((event->pos().x()-37)*ui->customPlot->xAxis->range().size()/(ui->customPlot->size().rwidth()-51) + ui->customPlot->xAxis->range().lower);
+                        tracer1->setGraphKey((event->pos().x()-64)*ui->customPlot->xAxis->range().size()/(ui->customPlot->size().rwidth()-78) + ui->customPlot->xAxis->range().lower);
                         ui->customPlot->replot();
                     }
                 }
 
-                qDebug() << "Right Mouse button pressed in y=" + QString::number(event->globalPosition().y()) + " customY=" + QString::number(ui->customPlot->y());
+                qDebug() << "Right Mouse button pressed in x=" + QString::number(event->globalPosition().x()) + " customY=" + QString::number(ui->customPlot->y());
                 break;
             }
             case Qt::MiddleButton:
@@ -461,7 +475,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 if(tracer2 != nullptr){
                     if(event->pos().x() < ui->customPlot->size().rwidth() && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() < ui->customPlot->size().rheight() + ui->customPlot->y()
                             && event->globalPosition().y() - this->mapToGlobal(this->pos()).y() > ui->customPlot->y()){
-                        tracer2->setGraphKey((event->pos().x()-37)*ui->customPlot->xAxis->range().size()/(ui->customPlot->size().rwidth()-51) + ui->customPlot->xAxis->range().lower);
+                        tracer2->setGraphKey((event->pos().x()-64)*ui->customPlot->xAxis->range().size()/(ui->customPlot->size().rwidth()-78) + ui->customPlot->xAxis->range().lower);
                         ui->customPlot->replot();
                     }
                 }
@@ -533,7 +547,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::update_ranges_of_Graph()
 {
-    ui->customPlot->xAxis->setRange(chGrData[0].x().at(0),chGrData->x().at(chGrData[0].x().length()-1));
 
     if(ui->combo_measureX->currentText() == "точки"){
         ui->customPlot->xAxis->setRange(chGrData[0].x().at(0),chGrData->x().at(chGrData[0].x().length()-1));
@@ -770,6 +783,7 @@ void MainWindow::on_btn_start_reg_clicked()
         }
         for (int j = 0; j < NUM_OF_COLORS; j++){
             ui->customPlot->graph(j)->data()->clear();
+            chGrData[j].clear_data();
         }
 
         datagram->clear();
@@ -946,6 +960,7 @@ void MainWindow::on_math_update_settings()
         ui->customPlot->graph(i)->setVisible(false);
         ui->customPlot->graph(i)->removeFromLegend();
     }
+    mathGrData.clear();
     ui->customPlot->replot();
     emit math_request();
 }
@@ -956,10 +971,11 @@ void MainWindow::on_math_data_request(int math_num, QVector<int> channels)
     for(int i = 0; i < channels.count(); i++){
         QVector <double> graph;
         int n = channels.at(i);
-        for(int j = 0; j < ui->customPlot->graph(n)->data()->size(); j++){
-            graph.append(ui->customPlot->graph(n)->data()->at(j)->mainValue());
-        }
-        data.append(graph);
+        //for(int j = 0; j < ui->customPlot->graph(n)->data()->size(); j++){
+        //    graph.append(ui->customPlot->graph(n)->data()->at(j)->mainValue());
+        //}
+        //data.append(graph);
+        data.append(chGrData[n].y_v());
     }
     //emit math_send_data(data);
     mathForms.at(math_num-1)->on_math_send_data(data);
@@ -968,14 +984,18 @@ void MainWindow::on_math_data_request(int math_num, QVector<int> channels)
 void MainWindow::on_math_result_graph(int math_num, QVector<QVector<double>> graphs)
 {
     //Сделать несколько графиков для одного измерения
-        ui->customPlot->graph(7+math_num)->data()->clear();
-        for(int j = 0; j < graphs.at(0).count(); j++){
-            ui->customPlot->graph(7+math_num)->addData(ui->customPlot->graph(0)->data()->at(j)->mainKey(),graphs.at(0).at(j));
+        //ui->customPlot->graph(7+math_num)->data()->clear();
+        while(graphs[0].length()<chGrData->x().length()){
+            graphs[0].append(0);
         }
+        mathGrData.append(graphs.at(0));
+        //for(int j = 0; j < graphs.at(0).count(); j++){
+        //    ui->customPlot->graph(7+math_num)->addData(ui->customPlot->graph(0)->data()->at(j)->mainKey(),graphs.at(0).at(j));
+        //}
         ui->customPlot->graph(7+math_num)->setVisible(true);
         ui->customPlot->graph(7+math_num)->addToLegend();
 
-    ui->customPlot->replot();
+    update_measureXY(); // Установит график в соответствии с ед. измерения
 }
 
 void MainWindow::on_math_result_number(int math_num, QVector<double> numbers)
@@ -1097,13 +1117,16 @@ void MainWindow::load_graph_from_csv(QList<QStringList> points){
         chGrData[i].range = points[i+1][3].toInt();
         chGrData[i].resist = points[i+1][5].toInt();
         ui->customPlot->graph(i)->data()->clear();
+        QVector <double> xcsv, ycsv;
+        xcsv.clear(); ycsv.clear();
         for(int j = 0; j < points[1+num_of_chan+i][0].toInt(); j++){
-            ui->customPlot->graph(i)->addData(points[1+num_of_chan+i][2*j+1].toDouble(), points[1+num_of_chan+i][2*(j+1)].toDouble());
+            xcsv.append(points[1+num_of_chan+i][2*j+1].toDouble());
+            ycsv.append(points[1+num_of_chan+i][2*(j+1)].toDouble());
+            //ui->customPlot->graph(i)->addData(points[1+num_of_chan+i][2*j+1].toDouble(), points[1+num_of_chan+i][2*(j+1)].toDouble());
         }
+        chGrData[i].set_data(xcsv,ycsv);
     }
-    ui->customPlot->xAxis->setRange(points[1+num_of_chan][1].toInt(),points[1+num_of_chan][2*points[1+num_of_chan][0].toInt()-1].toDouble());
-    ui->customPlot->yAxis->setRange(0,4096);
-    ui->customPlot->replot();
+    update_measureXY(); // Установит график в соответствии с ед. измерения
     on_btn_call_math_clicked();
 }
 
@@ -1162,6 +1185,7 @@ void MainWindow::on_btn_call_math_clicked()
         ui->customPlot->graph(i)->setVisible(false);
         ui->customPlot->graph(i)->removeFromLegend();
     }
+    mathGrData.clear();
     ui->customPlot->replot();
     emit math_request();
 }
@@ -1174,44 +1198,82 @@ void MainWindow::update_measureXY()
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x(),chGrData[j].y());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->data().clear();
+            }
         }else if(ui->combo_measureX->currentText() == "нс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_ns(),chGrData[j].y());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->data().clear();
             }
         }else if(ui->combo_measureX->currentText() == "мкс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_mcs(),chGrData[j].y());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->data().clear();
+            }
         }else if(ui->combo_measureX->currentText() == "мс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_ms(),chGrData[j].y());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->data().clear();
             }
         }else if(ui->combo_measureX->currentText() == "с"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_s(),chGrData[j].y());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->data().clear();
+            }
         }
     }else if(ui->combo_measureY->currentText() == "мВ"){
         ui->customPlot->yAxis->setLabel("мВольт");
+        QVector<QVector <double>> mv_math;
+        for(int j = 0; j < mathGrData.length(); j++){
+            QVector <double> mv_math_one;
+            for(int i = 0; i < mathGrData.at(j).length();i++){
+                mv_math_one.append(mathGrData.at(j).at(i)*1000);
+            }
+            mv_math.append(mv_math_one);
+        }
         if (ui->combo_measureX->currentText() == "точки"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x(),chGrData[j].y_mv());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x(),mv_math.at(i-NUM_OF_CHANNELS));
             }
         }else if(ui->combo_measureX->currentText() == "нс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_ns(),chGrData[j].y_mv());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_ns(),mv_math.at(i-NUM_OF_CHANNELS));
+            }
         }else if(ui->combo_measureX->currentText() == "мкс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_mcs(),chGrData[j].y_mv());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_mcs(),mv_math.at(i-NUM_OF_CHANNELS));
             }
         }else if(ui->combo_measureX->currentText() == "мс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_ms(),chGrData[j].y_mv());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_ms(),mv_math.at(i-NUM_OF_CHANNELS));
+            }
         }else if(ui->combo_measureX->currentText() == "с"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_s(),chGrData[j].y_mv());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_s(),mv_math.at(i-NUM_OF_CHANNELS));
             }
         }
     }else if(ui->combo_measureY->currentText() == "В"){
@@ -1220,21 +1282,36 @@ void MainWindow::update_measureXY()
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x(),chGrData[j].y_v());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x(),mathGrData.at(i-NUM_OF_CHANNELS));
+            }
         }else if(ui->combo_measureX->currentText() == "нс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_ns(),chGrData[j].y_v());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_ns(),mathGrData.at(i-NUM_OF_CHANNELS));
             }
         }else if(ui->combo_measureX->currentText() == "мкс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_mcs(),chGrData[j].y_v());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_mcs(),mathGrData.at(i-NUM_OF_CHANNELS));
+            }
         }else if(ui->combo_measureX->currentText() == "мс"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_ms(),chGrData[j].y_v());
             }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_ms(),mathGrData.at(i-NUM_OF_CHANNELS));
+            }
         }else if(ui->combo_measureX->currentText() == "с"){
             for (int j = 0; j < NUM_OF_CHANNELS; j++){
                 ui->customPlot->graph(j)->setData(chGrData[j].x_s(),chGrData[j].y_v());
+            }
+            for(int i = NUM_OF_CHANNELS; i < NUM_OF_CHANNELS+mathGrData.length(); i++){
+                ui->customPlot->graph(i)->setData(chGrData[0].x_s(),mathGrData.at(i-NUM_OF_CHANNELS));
             }
         }
     }
@@ -1330,10 +1407,12 @@ void MainWindow::on_btn_tracer_clicked()
         tracer1->setPen(QPen(QColor(130, 180, 250), 1.5, Qt::DashDotDotLine));
         tracer1->setGraph(ui->customPlot->graph(ui->comboBox_tr_ch->currentIndex()));
         ui->btn_tracer->setText("Спрятать\nкурсор 1");
+        ui->btn_tracer->setStyleSheet("QPushButton {border: 1px solid #bc3be3;background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99aacc, stop: 1 #aabbff);color: black; }");
     } else {
         delete tracer1;
         tracer1 = nullptr;
         ui->btn_tracer->setText("Показать\nкурсор 1");
+        ui->btn_tracer->setStyleSheet("QPushButton:hover {border: 1px solid #bc3be3;background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99aacc, stop: 1 #aabbff);color: black; }");
     }
     ui->customPlot->replot();
 }
@@ -1344,12 +1423,14 @@ void MainWindow::on_btn_tracer2_clicked()
     if(tracer2 == nullptr){
         tracer2 = new QCPItemTracer(ui->customPlot);
         tracer2->setPen(QPen(QColor(130, 250, 160), 1.5, Qt::DashDotDotLine));
-        tracer2->setGraph(ui->customPlot->graph(ui->comboBox_tr_ch->currentIndex()));
+        tracer2->setGraph(ui->customPlot->graph(ui->comboBox_tr2_ch->currentIndex()));
         ui->btn_tracer2->setText("Спрятать\nкурсор 2");
+        ui->btn_tracer2->setStyleSheet("QPushButton {border: 1px solid #bc3be3;background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99ccaa, stop: 1 #aaffbb);color: black; }");
     } else {
         delete tracer2;
         tracer2 = nullptr;
         ui->btn_tracer2->setText("Показать\nкурсор 2");
+        ui->btn_tracer2->setStyleSheet("");ui->btn_tracer2->setStyleSheet("QPushButton:hover {border: 1px solid #bc3be3;background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99ccaa, stop: 1 #aaffbb);color: black; }");
     }
     ui->customPlot->replot();
 }
@@ -1357,18 +1438,21 @@ void MainWindow::on_btn_tracer2_clicked()
 
 void MainWindow::on_btn_tr_time_clicked()
 {
+    if (tracer1 != nullptr && tracer2 != nullptr)
     ui->textEdit_tr_result->append("Время между курсорами: " + QString::number(tracer2->position->key() - tracer1->position->key()));
 }
 
 
 void MainWindow::on_btn_tr_freq_clicked()
 {
+    if (tracer1 != nullptr && tracer2 != nullptr)
     ui->textEdit_tr_result->append("1/время: " + QString::number(1/(tracer2->position->key() - tracer1->position->key())));
 }
 
 
 void MainWindow::on_btn_tr_max_min_clicked()
 {
+    if (tracer1 != nullptr && tracer2 != nullptr){
     QSharedPointer <QCPGraphDataContainer> data = tracer1->graph()->data();
     double minx, miny, maxx, maxy;
     bool flag = true;
@@ -1390,10 +1474,12 @@ void MainWindow::on_btn_tr_max_min_clicked()
     }
     ui->textEdit_tr_result->append("Максимум: x = " + QString::number(maxx) + "; y = " + QString::number(maxy));
     ui->textEdit_tr_result->append("Минимум: x = " + QString::number(minx) + "; y = " + QString::number(miny));
+    }
 }
 
 void MainWindow::on_btn_tr_ampl_clicked()
 {
+    if (tracer1 != nullptr && tracer2 != nullptr){
     QSharedPointer <QCPGraphDataContainer> data = tracer1->graph()->data();
     double miny, maxy;
     bool flag = true;
@@ -1411,6 +1497,7 @@ void MainWindow::on_btn_tr_ampl_clicked()
         }
     }
     ui->textEdit_tr_result->append("Размах: " + QString::number(maxy - miny));
+    }
 }
 
 void MainWindow::on_btn_tr_clear_clicked()
@@ -1422,6 +1509,10 @@ void MainWindow::on_comboBox_tr_ch_currentIndexChanged(int index)
 {
     if(tracer1 != nullptr)
         tracer1->setGraph(ui->customPlot->graph(index));
+}
+
+void MainWindow::on_comboBox_tr2_ch_currentIndexChanged(int index)
+{
     if(tracer2 != nullptr)
         tracer2->setGraph(ui->customPlot->graph(index));
 }
@@ -1435,5 +1526,25 @@ void MainWindow::on_combo_measureY_currentTextChanged(const QString &arg1)
 void MainWindow::on_combo_measureX_currentTextChanged(const QString &arg1)
 {
     update_measureXY();
+}
+
+void MainWindow::on_btn_tr_fourier_clicked()
+{
+    if(tracer1 != nullptr){
+        double freq;
+        if (ui->combo_measureX->currentText() == "точки"){
+            freq = (tracer1->graphKey()-chGrData[0].x().at(0))/(chGrData[0].x().at(chGrData[0].x().length()-1)-chGrData[0].x().at(0))*sample_rate/2;
+        }else if(ui->combo_measureX->currentText() == "нс"){
+            freq = (tracer1->graphKey()-chGrData[0].x_ns().at(0))/(chGrData[0].x_ns().at(chGrData[0].x_ns().length()-1)-chGrData[0].x_ns().at(0))*sample_rate/2;
+        }else if(ui->combo_measureX->currentText() == "мкс"){
+            freq = (tracer1->graphKey()-chGrData[0].x_mcs().at(0))/(chGrData[0].x_mcs().at(chGrData[0].x_mcs().length()-1)-chGrData[0].x_mcs().at(0))*sample_rate/2;
+        }else if(ui->combo_measureX->currentText() == "мс"){
+            freq = (tracer1->graphKey()-chGrData[0].x_ms().at(0))/(chGrData[0].x_ms().at(chGrData[0].x_ms().length()-1)-chGrData[0].x_ms().at(0))*sample_rate/2;
+        }else if(ui->combo_measureX->currentText() == "с"){
+            freq = (tracer1->graphKey()-chGrData[0].x_s().at(0))/(chGrData[0].x_s().at(chGrData[0].x_s().length()-1)-chGrData[0].x_s().at(0))*sample_rate/2;
+        }else{freq = 0;}
+        //freq = (tracer1->graphKey()/)*(sample_rate/2)/chGrData[0].x().length();
+        ui->textEdit_tr_result->append("Частота гармоники: " + QString::number(freq/1000000) + "МГц");
+    }
 }
 
