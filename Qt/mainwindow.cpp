@@ -15,10 +15,37 @@ QColor graph_palette[NUM_OF_COLORS] = {
     QColor(188, 59, 227),  //Purple
 //for measurements
     QColor(255, 178, 46), // Yellow Orange
-    QColor(255, 36, 226), //Barbie Pink
-    QColor(255, 182, 193),  //Light Pink
+    QColor(255, 36, 226), // Barbie Pink
+    QColor(255, 182, 193),  // Light Pink
     QColor(160, 130, 100), // Brown
     QColor(200, 200, 180) // Grey
+};
+//Набор цветов для светлой темы
+QColor graph_palette_l[NUM_OF_COLORS] = {
+// 1-4 channels
+    QColor(21, 189, 9), //* Islamic Green
+    Qt::blue,
+    QColor(188, 59, 227),  // Purple
+    QColor(250, 100, 50), // Orange
+// 5-8 channels
+    Qt::red,
+    QColor(128, 128, 0), // Olive
+    QColor(128, 0, 128),  // Purple
+    QColor(128, 0, 0), // Maroon
+//for measurements
+    QColor(255, 178, 46), // Yellow Orange
+    QColor(255, 36, 226), // Barbie Pink
+    QColor(0, 128, 128),  // Teal
+    QColor(160, 130, 100), // Brown
+    QColor(0, 128, 0) // Green
+};
+QColor cursor_palette[NUM_OF_COLORS] = {
+// Dark theme
+    QColor(130, 180, 250), // 1 cursor
+    QColor(130, 250, 160), // 2 cursor
+// Light theme
+    QColor(60, 110, 180),
+    QColor(50, 180, 50)
 };
 
 void MainWindow::delayms()
@@ -387,6 +414,21 @@ void MainWindow::graph_setDark(){
     ui->customPlot->legend->setBrush(QColor(80, 80, 80));
     ui->customPlot->legend->setBorderPen(QPen(Qt::white, 1));
     ui->customPlot->legend->setTextColor(Qt::white);
+
+    for (int j = 0; j < NUM_OF_CHANNELS; j++){
+        ui->customPlot->graph(j)->setPen(QPen(graph_palette[j%NUM_OF_CHANNELS], 1.2));
+    }
+    for (int j = 0; j < MAX_MEASUREMENTS; j++){
+        ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.2));
+        if(j/(NUM_OF_COLORS - NUM_OF_CHANNELS) >= 1) ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.5, Qt::DotLine));
+    }
+
+    if(tracer1 != nullptr){
+        tracer1->setPen(QPen(cursor_palette[0], 1.5, Qt::DashDotDotLine));
+    }
+    if(tracer2 != nullptr){
+        tracer2->setPen(QPen(cursor_palette[1], 1.5, Qt::DashDotDotLine));
+    }
 }
 
 void MainWindow::graph_setLight(){
@@ -425,6 +467,21 @@ void MainWindow::graph_setLight(){
     ui->customPlot->legend->setBrush(Qt::white);
     ui->customPlot->legend->setBorderPen(QPen(QColor(80, 80, 80),1));
     ui->customPlot->legend->setTextColor(Qt::black);
+
+    for (int j = 0; j < NUM_OF_CHANNELS; j++){
+        ui->customPlot->graph(j)->setPen(QPen(graph_palette_l[j%NUM_OF_CHANNELS], 1.2));
+    }
+    for (int j = 0; j < MAX_MEASUREMENTS; j++){
+        ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette_l[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.2));
+        if(j/(NUM_OF_COLORS - NUM_OF_CHANNELS) >= 1) ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette_l[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.5, Qt::DotLine));
+    }
+
+    if(tracer1 != nullptr){
+        tracer1->setPen(QPen(cursor_palette[2], 1.5, Qt::DashDotDotLine));
+    }
+    if(tracer2 != nullptr){
+        tracer2->setPen(QPen(cursor_palette[3], 1.5, Qt::DashDotDotLine));
+    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *e)
@@ -571,7 +628,7 @@ void MainWindow::update_ranges_of_Graph()
 }
 
 void MainWindow::initialize_graph(){
-    graph_setDark();
+    //graph_setDark();
    // customPlot->rescaleAxes();
    // customPlot->yAxis->setRange(0, 2);
     ui->customPlot->legend->setVisible(true);
@@ -583,22 +640,16 @@ void MainWindow::initialize_graph(){
         ui->customPlot->addGraph();
 
         ui->customPlot->graph(j)->addData(chGrData[j].x(),chGrData[j].y());
-        //ui->customPlot->graph(j)->addData(chGraphs.at(j).data.x, chGraphs.at(j).data.y);
-        ui->customPlot->graph(j)->setPen(QPen(graph_palette[j], 1.2));
         ui->customPlot->graph(j)->setVisible(false); // Hide Graphs
         ui->customPlot->graph(j)->setName("K" + QString::number(j+1));
     }
 
     for (int j = 0; j < MAX_MEASUREMENTS; j++){
         ui->customPlot->addGraph();
-        //ui->customPlot->graph(j)->addData(graph.ch[j].x, graph.ch[j].y);
-        //ui->customPlot->graph(j)->addData(chGraphs.at(j).data.x, chGraphs.at(j).data.y);
-        ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.2));
-        if(j/(NUM_OF_COLORS - NUM_OF_CHANNELS) >= 1) ui->customPlot->graph(NUM_OF_CHANNELS+j)->setPen(QPen(graph_palette[NUM_OF_CHANNELS + j%(NUM_OF_COLORS - NUM_OF_CHANNELS)], 1.5, Qt::DotLine));
         ui->customPlot->graph(NUM_OF_CHANNELS+j)->setVisible(false); // Hide Graphs
         ui->customPlot->graph(NUM_OF_CHANNELS+j)->setName("M" + QString::number(j+1));
     }
-
+    graph_setDark();
     update_measureXY();
 
     //Было так
@@ -1404,7 +1455,12 @@ void MainWindow::on_btn_tracer_clicked()
 {
     if(tracer1 == nullptr){
         tracer1 = new QCPItemTracer(ui->customPlot);
-        tracer1->setPen(QPen(QColor(130, 180, 250), 1.5, Qt::DashDotDotLine));
+        if(ui->btn_graph_theme->text() == "Включить\nсветлую\nтему"){
+            tracer1->setPen(QPen(cursor_palette[0], 1.5, Qt::DashDotDotLine)); // Dark theme
+        }
+        else {
+            tracer1->setPen(QPen(cursor_palette[2], 1.5, Qt::DashDotDotLine));
+        }
         tracer1->setGraph(ui->customPlot->graph(ui->comboBox_tr_ch->currentIndex()));
         ui->btn_tracer->setText("Спрятать\nкурсор 1");
         ui->btn_tracer->setStyleSheet("QPushButton {border: 1px solid #bc3be3;background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99aacc, stop: 1 #aabbff);color: black; }");
@@ -1422,7 +1478,12 @@ void MainWindow::on_btn_tracer2_clicked()
 {
     if(tracer2 == nullptr){
         tracer2 = new QCPItemTracer(ui->customPlot);
-        tracer2->setPen(QPen(QColor(130, 250, 160), 1.5, Qt::DashDotDotLine));
+        if(ui->btn_graph_theme->text() == "Включить\nсветлую\nтему"){
+            tracer2->setPen(QPen(cursor_palette[1], 1.5, Qt::DashDotDotLine));
+        }
+        else {
+            tracer2->setPen(QPen(cursor_palette[3], 1.5, Qt::DashDotDotLine));
+        }
         tracer2->setGraph(ui->customPlot->graph(ui->comboBox_tr2_ch->currentIndex()));
         ui->btn_tracer2->setText("Спрятать\nкурсор 2");
         ui->btn_tracer2->setStyleSheet("QPushButton {border: 1px solid #bc3be3;background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #99ccaa, stop: 1 #aaffbb);color: black; }");
@@ -1438,15 +1499,31 @@ void MainWindow::on_btn_tracer2_clicked()
 
 void MainWindow::on_btn_tr_time_clicked()
 {
-    if (tracer1 != nullptr && tracer2 != nullptr)
-    ui->textEdit_tr_result->append("Время между курсорами: " + QString::number(tracer2->position->key() - tracer1->position->key()));
+    if (tracer1 != nullptr && tracer2 != nullptr){
+        double time = 0;
+        time = tracer2->position->key() - tracer1->position->key();
+        ui->textEdit_tr_result->append("Время между курсорами: " +  QString::number(time) + " " + ui->combo_measureX->currentText());
+    }
 }
 
 
 void MainWindow::on_btn_tr_freq_clicked()
 {
-    if (tracer1 != nullptr && tracer2 != nullptr)
-    ui->textEdit_tr_result->append("1/время: " + QString::number(1/(tracer2->position->key() - tracer1->position->key())));
+    if (tracer1 != nullptr && tracer2 != nullptr){
+        double time = 1/(tracer2->position->key() - tracer1->position->key());
+        QString freqMeasure = "";
+        if(ui->combo_measureX->currentText() == "нс"){
+            time *= 1000;
+            freqMeasure = "МГц";
+        }else if(ui->combo_measureX->currentText() == "мкс"){
+            freqMeasure = "МГц";
+        }else if(ui->combo_measureX->currentText() == "мс"){
+            freqMeasure = "кГц";
+        }else if(ui->combo_measureX->currentText() == "с"){
+            freqMeasure = "Гц";
+        }
+        ui->textEdit_tr_result->append("Частота: " +  QString::number(time) + " " + freqMeasure);
+    }
 }
 
 
@@ -1472,8 +1549,8 @@ void MainWindow::on_btn_tr_max_min_clicked()
             }
         }
     }
-    ui->textEdit_tr_result->append("Максимум: x = " + QString::number(maxx) + "; y = " + QString::number(maxy));
-    ui->textEdit_tr_result->append("Минимум: x = " + QString::number(minx) + "; y = " + QString::number(miny));
+    ui->textEdit_tr_result->append("Максимум: x = " + QString::number(maxx) + " " + ui->combo_measureX->currentText() + "; y = " + QString::number(maxy) + ui->combo_measureY->currentText());
+    ui->textEdit_tr_result->append("Минимум: x = " + QString::number(minx) + " " + ui->combo_measureX->currentText() + "; y = " + QString::number(miny) + ui->combo_measureY->currentText());
     }
 }
 
